@@ -1,7 +1,7 @@
 {
-  "name": "generic-nodejs-toolchain",
-  "version": "0.0.7",
-  "description": "A boilerplate for *Node.js* projects.",
+  "name": "cortez",
+  "version": "0.1.0",
+  "description": "Graph data structure.",
   "main": "index.js",
   "scripts": {
     "clean:docs": "shx rm -rf docs/**/* && true",

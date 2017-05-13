@@ -1,9 +1,9 @@
-import sequenceFactory from './sequence';
+import sequenceFactory from "./sequence";
 
-const getId = (element) => typeof(element) === 'object' ? element.id : element;
+const getId = (element) => typeof(element) === "object" ? element.id : element;
 
 const fragment = (fragment, options = {}) => {
-	let { nodes, edges, nodeCount, edgeCount } = (typeof fragment === 'string') ? JSON.parse(fragment) : fragment;
+	let { nodes, edges, nodeCount, edgeCount } = (typeof fragment === "string") ? JSON.parse(fragment) : fragment;
 
 	const nodeSeq = sequenceFactory(nodeCount);
 	const edgeSeq = sequenceFactory(edgeCount);
@@ -29,8 +29,8 @@ const fragment = (fragment, options = {}) => {
 		return newGraph;
 	};
 
-	const mergeWith = (fragment) => {
-		const operand = Graph.fragment(fragment);
+	const mergeWith = (otherFragment) => {
+		const operand = fragment(otherFragment);
 		const newGraph = pack();
 		const mapping = {};
 
@@ -113,7 +113,7 @@ const fragment = (fragment, options = {}) => {
 			(options.onRemoveEdge)(edges[id], options.context);
 		}
 
-		const fromRode = nodes[edges[id].from.id];
+		const fromNode = nodes[edges[id].from.id];
 		const toNode = nodes[edges[id].to.id];
 		delete fromNode.outbound[edges[id].to.id];
 		delete toNode.inbound[edges[id].from.id];
@@ -127,8 +127,8 @@ const fragment = (fragment, options = {}) => {
 	const hasEdge = (from, to) => !!from.outbound[getId(to)];
 	const getNodeById = (nodeId) => nodes[nodeId];
 	const getEdgeById = (edgeId) => edges[edgeId];
-	const inflateEdges = (edges) => {};
-	const inflateNodes = (nodes) => {};
+	const inflateEdges = (edges) => edges;
+	const inflateNodes = (nodes) => nodes;
 	const getNodes = () => nodes;
 	const getEdges = () => edges;
 	const link = (from, to, payload) => addEdge(edge(
@@ -167,7 +167,7 @@ const empty = () => fragment({
 });
 
 const node = (payload, metadata) => ({
-	type: 'node',
+	type: "node",
 	payload,
 	metadata,
 	numOutbound: 0,
@@ -180,7 +180,7 @@ const node = (payload, metadata) => ({
 });
 
 const edge = (from, to, payload, metadata) => ({
-	type: 'edge',
+	type: "edge",
 	payload,
 	metadata,
 	from: getId(from),

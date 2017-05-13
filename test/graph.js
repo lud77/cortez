@@ -3,10 +3,10 @@ import { assert } from 'chai';
 import graphFactory from '../dist/graph';
 
 describe('Graph', function() {
-	it('should retrieve the id property of an object', function() {
-		const id = 3;
-		const obj = { id };
-		assert.equal(id, graphFactory.getId(obj));
+    it('should retrieve the id property of an object', function() {
+        const id = 3;
+        const obj = { id };
+        assert.equal(id, graphFactory.getId(obj));
 	});
 
 	it('should create a standalone node with payload and metadata', function() {
