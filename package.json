@@ -1,0 +1,42 @@
+{
+  "name": "generic-nodejs-toolchain",
+  "version": "0.0.7",
+  "description": "A boilerplate for *Node.js* projects.",
+  "main": "index.js",
+  "scripts": {
+    "clean": "shx rm -rf docs/**/* && true",
+    "lint": "eslint src/**/*.js -c conf/build/eslint.json",
+    "test": "babel src -d dist && babel test -d test-es5 && mocha test-es5/**/*.js",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- -u exports -R spec test-es5/**/*.js",
+    "build:dist": "babel src -d dist",
+    "build:docs": "jsdoc src -r -d docs",
+    "build:readme": "hbsrender -t pkg/readme/README.md.hbs -c ./package.json -p contribute:pkg/readme/CONTRIBUTE.md.hbs -p installation:pkg/readme/INSTALL.md.hbs > README.md",
+    "update:version": "npm version patch --force && npm run build:readme && git add .",
+    "precommit": "npm run lint && npm run test",
+    "prepush": "npm run lint && npm run test"
+  },
+  "author": "Stefano Butera <stefano.butera@nethnic.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lud77/generic-nodejs-toolchain.git"
+  },
+  "documentation": "docs/index.html",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "6.24.1",
+    "babel-preset-es2015": "6.24.1",
+    "babel-preset-stage-2": "6.24.1",
+    "chai": "3.5.0",
+    "eslint": "3.8.0",
+    "handlebars": "4.0.6",
+    "hbsrender": "1.0.9",
+    "husky": "0.11.9",
+    "istanbul": "0.4.5",
+    "jsdoc": "3.4.2",
+    "mocha": "3.0.2",
+    "shx": "0.1.4"
+  },
+  "dependencies": {
+    "winston": "2.2.0"
+  }
+}
