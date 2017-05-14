@@ -1,12 +1,15 @@
 import sequenceFactory from "./sequence";
 
-const getId = (element) => typeof(element) === "object" ? element.id : element;
+const factory = (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => {
+ 	let { nodes, edges, nodeCount, edgeCount } = Object.assign({}, {
+		nodeCount: 0,
+		edgeCount: 0,
+		nodes: {},
+		edges: {}
+	}, (typeof fragment === "string") ? JSON.parse(fragment) : fragment);
 
-const fragment = (fragment, options = {}) => {
-	let { nodes, edges, nodeCount, edgeCount } = (typeof fragment === "string") ? JSON.parse(fragment) : fragment;
-
-	const nodeSeq = sequenceFactory(nodeCount);
-	const edgeSeq = sequenceFactory(edgeCount);
+ 	const nodeSeq = sequenceFactory(nodeCount);
+ 	const edgeSeq = sequenceFactory(edgeCount);
 
 	const pack = () => {
 		const newGraph = empty();
@@ -53,7 +56,6 @@ const fragment = (fragment, options = {}) => {
 
 	const addNode = (node) => {
 		const id = nodeSeq.getNext();
-
 		nodes[id] = Object.assign({}, node);
 
 		nodes[id].id = id;
@@ -74,8 +76,16 @@ const fragment = (fragment, options = {}) => {
 		edges[id].id = id;
 		edges[id].graph = this;
 
-		nodes[edge.from].outbound[edge.to] = edge;
-		nodes[edge.to].inbound[edge.from] = edge;
+		if (!nodes[edge.from].outbound[edge.to]) {
+			nodes[edge.from].outbound[edge.to] = [];
+		}
+
+		if (!nodes[edge.to].inbound[edge.from]) {
+			nodes[edge.to].inbound[edge.from] = [];
+		}
+
+		nodes[edge.from].outbound[edge.to].push(id);
+		nodes[edge.to].inbound[edge.from].push(id);
 		nodes[edge.from].numOutbound++;
 		nodes[edge.to].numInbound++;
 
@@ -90,13 +100,21 @@ const fragment = (fragment, options = {}) => {
 	const removeNode = (node) => {
 		const id = getId(node);
 
+		if (!nodes[id]) return;
+
 		if (options.onRemoveNode) {
 			(options.onRemoveNode)(nodes[id], options.context);
 		}
 
-		for (let e in edges) {
-			if ((edges[e]) && ((edges[e].from.id == id) || (edges[e].to.id == id))) {
-				removeEdge(e);
+		for (let g in nodes[id].inbound) {
+			for (let e in nodes[id].inbound[g]) {
+				removeEdge(nodes[id].inbound[g][e]);
+			}
+		}
+
+		for (let g in nodes[id].outbound) {
+			for (let e in nodes[id].outbound[g]) {
+				removeEdge(nodes[id].outbound[g][e]);
 			}
 		}
 
@@ -106,19 +124,11 @@ const fragment = (fragment, options = {}) => {
 
 	const removeEdge = (edge) => {
 		const id = getId(edge);
-
 		if (!edges[id]) return;
 
 		if (options.onRemoveEdge) {
 			(options.onRemoveEdge)(edges[id], options.context);
 		}
-
-		const fromNode = nodes[edges[id].from.id];
-		const toNode = nodes[edges[id].to.id];
-		delete fromNode.outbound[edges[id].to.id];
-		delete toNode.inbound[edges[id].from.id];
-		fromNode.numOutbound--;
-		toNode.numInbound--;
 
 		edgeCount--;
 		delete edges[id];
@@ -127,71 +137,33 @@ const fragment = (fragment, options = {}) => {
 	const hasEdge = (from, to) => !!from.outbound[getId(to)];
 	const getNodeById = (nodeId) => nodes[nodeId];
 	const getEdgeById = (edgeId) => edges[edgeId];
-	const inflateEdges = (edges) => edges;
-	const inflateNodes = (nodes) => nodes;
 	const getNodes = () => nodes;
 	const getEdges = () => edges;
-	const link = (from, to, payload) => addEdge(edge(
+
+	const link = (from, to, payload) => addEdge(edgeFactory(
 		getId(from),
 		getId(to),
 		payload
 	));
 
-	return {
-		nodes,
-		edges,
-		nodeCount,
-		edgeCount,
-		pack,
-		mergeWith,
-		addNode,
-		addEdge,
+ 	return {
+ 		nodes,
+ 		edges,
+ 		nodeCount,
+ 		edgeCount,
 		hasEdge,
-		removeNode,
-		removeEdge,
-		getNodeById,
-		getEdgeById,
-		inflateNodes,
-		inflateEdges,
-		getNodes,
-		getEdges,
-		link
-	};
+ 		pack,
+ 		mergeWith,
+ 		addNode,
+ 		addEdge,
+ 		removeNode,
+ 		removeEdge,
+ 		getNodeById,
+ 		getEdgeById,
+ 		getNodes,
+ 		getEdges,
+ 		link
+ 	};
 };
 
-const empty = () => fragment({
-	nodeCount: 0,
-	edgeCount: 0,
-	nodes: {},
-	edges: {}
-});
-
-const node = (payload, metadata) => ({
-	type: "node",
-	payload,
-	metadata,
-	numOutbound: 0,
-	numInbound: 0,
-	outbound: {},
-	inbound: {},
-	inGraph: () => this.graph !== undefined,
-	getOutboundEdges: () => this.outbound,
-	getInboundEdges: () => this.inbound
-});
-
-const edge = (from, to, payload, metadata) => ({
-	type: "edge",
-	payload,
-	metadata,
-	from: getId(from),
-	to: getId(to),
-	inGraph: () => this.graph !== undefined
-});
-
-export default {
-	getId,
-	fragment,
-	empty,
-	node,
-	edge
-};
+export default { factory };

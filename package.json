@@ -1,18 +1,16 @@
 {
   "name": "cortez",
   "version": "0.1.0",
-  "description": "Graph data structure.",
+  "description": "Graph data structure",
   "main": "index.js",
   "scripts": {
-    "clean:docs": "shx rm -rf docs/**/* && true",
     "clean:dist": "shx rm -rf dist/**/* && true",
     "clean:tests": "shx rm -rf dist/**/* && shx rm -rf test-es5/**/* && true",
     "lint": "eslint src/**/*.js -c conf/build/eslint.json",
     "test": "npm run clean:tests && npm run build:tests && mocha test-es5/**/*.js",
-    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- -u exports -R spec test-es5/**/*.js",
-    "build:tests": "npm run clean:tests && babel src -d dist && babel test -d test-es5",
+    "coverage": "npm run clean:tests && npm run build:tests && istanbul cover node_modules/mocha/bin/_mocha -- -u exports -R spec test-es5/**/*.js",
+    "build:tests": "babel src -d dist && babel test -d test-es5",
     "build:dist": "babel src -d dist",
-    "build:docs": "jsdoc src -r -d docs",
     "build:readme": "hbsrender -t pkg/readme/README.md.hbs -c ./package.json -p contribute:pkg/readme/CONTRIBUTE.md.hbs -p installation:pkg/readme/INSTALL.md.hbs > README.md",
     "update:version": "npm version patch --force && npm run build:readme",
     "precommit": "npm run lint && npm run test",
@@ -21,9 +19,8 @@
   "author": "Stefano Butera <stefano.butera@nethnic.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lud77/generic-nodejs-toolchain.git"
+    "url": "https://github.com/lud77/cortez.git"
   },
-  "documentation": "docs/index.html",
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "6.24.1",
@@ -35,7 +32,6 @@
     "hbsrender": "1.0.9",
     "husky": "0.11.9",
     "istanbul": "0.4.5",
-    "jsdoc": "3.4.2",
     "mocha": "3.0.2",
     "shx": "0.1.4"
   },
