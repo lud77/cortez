@@ -7,7 +7,8 @@
 
 Clone the repository
 
-	git clone --depth=1 https://github.com/lud77/cortez.git projectFolder
+	npm i --save cortez
+
 
 ## Why?
 
@@ -24,7 +25,7 @@ The ES5 code is in the dist folder, while the src folder contains the ES6 source
 
 ## Documentation
 
-TODO, in the meantime you can look at the tests
+Install the package and open docs/index.html in the browser
 
 
 
@@ -34,7 +35,8 @@ TODO, in the meantime you can look at the tests
 ## Roadmap
 
 - Detail features and write documentation
-- Add a suite of basic algorithms such as graph search
+- Add support for undirected graphs
+- Add a suite of basic algorithms such as graph search and coverage
 
 
 

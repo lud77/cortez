@@ -1,12 +1,38 @@
-import _ from "lodash";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: graph.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: graph.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import _ from "lodash";
 
 import sequenceFactory from "./sequence";
 
 /**
- * Create a graph
- * @namespace graph
- * @param fragment - a Cortez object or a JSON-serialized Cortez instance
- * @param options - allowUndirected, onAddNode, onAddEdge, onRemoveNode, onRemoveEdge
+ * @param fragment is a Cortez object or a JSON-serialized Cortez instance
+ * @param options allowUndirected, onAddNode, onAddEdge, onRemoveNode, onRemoveEdge
  */
 export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => {
  	let { nodes, edges, nodeCount, edgeCount } = Object.assign({}, {
@@ -64,10 +90,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Add a node to the graph
-	 * @function addNode
-	 * @memberof graph
 	 * @param node - a node object generated with cortez.node()
-	 * @fires options.onAddNode
 	 */
 	const addNode = (node) => {
 		const id = nodeSeq.getNext();
@@ -86,10 +109,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Add an edge to the graph
-	 * @function addEdge
-	 * @memberof graph
 	 * @param edge - an edge generated with cortez.edge()
-	 * @fires options.onAddEdge
 	 */
 	const addEdge = (edge) => {
 		const id = edgeSeq.getNext();
@@ -121,10 +141,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Remove a node from a graph
-	 * @function removeNode
-	 * @memberof graph
 	 * @param node - a node object or the id of a node
-	 * @fires options.onRemoveNode
 	 */
 	const removeNode = (node) => {
 		const id = getId(node);
@@ -153,10 +170,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Remove an edge from a graph
-	 * @function removeEdge
-	 * @memberof graph
 	 * @param edge - an edge object or the id of an edge
-	 * @fires options.onRemoveEdge
 	 */
 	const removeEdge = (edge) => {
 		const id = getId(edge);
@@ -172,24 +186,18 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Retrieve a node given a node object or its id
-	 * @function getNode
-	 * @memberof graph
 	 * @param node - a node object or the id of a node
 	 */
 	const getNode = (node) => nodes[getId(node)];
 
 	/**
 	 * Retrieve an edge given an edge object or its id
-	 * @function getEdge
-	 * @memberof graph
 	 * @param node - an edge object or the id of an edge
 	 */
 	const getEdge = (edge) => edges[getId(edge)];
 
 	/**
 	 * Checks if a couple of nodes has a directed edge connecting them
-	 * @function hasDirectedEdge
-	 * @memberof graph
 	 * @param from - a node
 	 * @param to - a node
 	 */
@@ -197,8 +205,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Checks if a couple of nodes has an undirected edge connecting them
-	 * @function hasUndirectedEdge
-	 * @memberof graph
 	 * @param from - a node
 	 * @param to - a node
 	 */
@@ -210,8 +216,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Checks if a couple of nodes has a directed or undirected edge connecting them
-	 * @function hasEdge
-	 * @memberof graph
 	 * @param from - a node
 	 * @param to - a node
 	 */
@@ -223,24 +227,18 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Retrieves a list of nodes
-	 * @function inflateNodes
-	 * @memberof graph
 	 * @param nodeIds - an array of ids of nodes to be retrieved
 	 */
 	const inflateNodes = (nodeIds) => _.map(nodeIds, (id) => nodes[id]);
 
 	/**
 	 * Retrieves a list of edges
-	 * @function inflateEdges
-	 * @memberof graph
 	 * @param edgeIds - an array of ids of edges to be retrieved
 	 */
 	const inflateEdges = (edgeIds) => _.map(edgeIds, (id) => edges[id]);
 
 	/**
 	 * Shortcut method to create an edge between two nodes
-	 * @function link
-	 * @memberof graph
 	 * @param from - a node
 	 * @param to - a node
 	 * @param payload - an object to be stored in the node
@@ -251,8 +249,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Retrieve nodes matching a query
-	 * @function getNodes
-	 * @memberof graph
 	 * @param query - an object with a list of properties to be matched
 	 */
 	const getNodes = (query) => query ? _.chain(nodes).filter((entry) => _.matches(query)(entry.payload)).value() : nodes;
@@ -261,8 +257,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Retrieve edges matching a query from a list of candidates
-	 * @function getEdges
-	 * @memberof graph
 	 * @param pool - a list of candidate ids of edges
 	 * @param query - an object with a list of properties to be matched
 	 */
@@ -274,8 +268,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Retrieve edges extending from a given node
-	 * @function getEdgesFrom
-	 * @memberof graph
 	 * @param node - the source node
 	 * @param query - an object with a list of properties to be matched
 	 */
@@ -283,8 +275,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Retrieve edges reaching a given node
-	 * @function getEdgesTo
-	 * @memberof graph
 	 * @param node - the target node
 	 * @param query - an object with a list of properties to be matched
 	 */
@@ -292,8 +282,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Retrieve edges extending from a given node to another given node
-	 * @function getEdgesBetween
-	 * @memberof graph
 	 * @param node - the source node
 	 * @param node - the target node
 	 * @param query - an object with a list of properties to be matched
@@ -302,8 +290,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Retrieve nodes reached by edges that extend from a given node
-	 * @function getLinkedNodes
-	 * @memberof graph
 	 * @param node - the target node
 	 * @param query - an object with a list of properties to be matched
 	 */
@@ -311,8 +297,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	* Retrieve nodes having edges that reach a given node
-	* @function getLinkingNodes
-	* @memberof graph
 	* @param node - the target node
 	* @param query - an object with a list of properties to be matched
 	*/
@@ -343,3 +327,26 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		getLinkingNodes
  	};
 };
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Sun May 21 2017 16:50:07 GMT+0100 (ora legale GMT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

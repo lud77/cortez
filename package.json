@@ -6,12 +6,14 @@
   "scripts": {
     "clean:dist": "shx rm -rf dist/**/* && true",
     "clean:tests": "shx rm -rf dist/**/* && shx rm -rf test-es5/**/* && true",
+    "clean:docs": "shx rm -rf docs/**/* && true",
     "lint": "eslint src/**/*.js -c conf/build/eslint.json",
     "test": "npm run build:tests && mocha test-es5/**/*.js",
     "coverage": "npm run clean:tests && npm run build:tests && istanbul cover node_modules/mocha/bin/_mocha -- -u exports -R spec test-es5/**/*.js",
     "build:tests": "babel src -d dist && babel test -d test-es5",
     "build:dist": "babel src -d dist",
     "build:readme": "hbsrender -t pkg/readme/README.md.hbs -c ./package.json -p contribute:pkg/readme/CONTRIBUTE.md.hbs -p installation:pkg/readme/INSTALL.md.hbs > README.md",
+    "build:docs": "npm run clean:docs && jsdoc src -r -d docs",
     "update:version": "npm version patch --force && npm run build:readme",
     "precommit": "npm run lint && npm run test",
     "prepush": "npm run lint && npm run test"
@@ -32,6 +34,7 @@
     "hbsrender": "1.0.9",
     "husky": "0.11.9",
     "istanbul": "0.4.5",
+    "jsdoc": "3.4.3",
     "mocha": "3.0.2",
     "shx": "0.1.4"
   },

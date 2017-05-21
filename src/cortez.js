@@ -7,6 +7,9 @@ import edge from "./edge";
 
 const getId = (element) => _.get(element, 'id', element);
 
+/**
+ * Cortez object
+ */
 export default {
 	getId,
 	node,

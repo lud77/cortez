@@ -32,7 +32,7 @@ describe('Graph', function() {
 	it('should add a node to a graph', () => {
 		const graph = cz.graph();
 		const node = graph.addNode(cz.node());
-		const retrieved = graph.getNodeById(node.id);
+		const retrieved = graph.getNode(node.id);
 		assert.equal(node.id, retrieved.id);
 	});
 
@@ -41,7 +41,7 @@ describe('Graph', function() {
 		const node1 = graph.addNode(cz.node());
 		const node2 = graph.addNode(cz.node());
 		const edge = graph.addEdge(cz.edge(node1, node2));
-		const retrieved = graph.getEdgeById(edge.id);
+		const retrieved = graph.getEdge(edge.id);
 		assert.equal(edge.id, retrieved.id);
 		assert.equal(retrieved.from, node1.id);
 		assert.equal(retrieved.to, node2.id);
@@ -77,9 +77,9 @@ describe('Graph', function() {
 		const node2 = graph.addNode(cz.node());
 		const edge = graph.addEdge(cz.edge(node1, node2));
 		graph.removeNode(node1.id);
-		const deletedNode = graph.getNodeById(node1.id);
+		const deletedNode = graph.getNode(node1.id);
 		assert.equal(undefined, deletedNode);
-		const deletedEdge = graph.getEdgeById(edge.id);
+		const deletedEdge = graph.getEdge(edge.id);
 		assert.equal(undefined, deletedEdge);
 	});
 
@@ -89,7 +89,7 @@ describe('Graph', function() {
 		const node2 = graph.addNode(cz.node());
 		const edge = graph.addEdge(cz.edge(node1, node2));
 		graph.removeEdge(edge.id);
-		const deletedEdge = graph.getEdgeById(edge.id);
+		const deletedEdge = graph.getEdge(edge.id);
 		assert.equal(undefined, deletedEdge);
 	});
 
