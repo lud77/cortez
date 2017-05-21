@@ -7,7 +7,7 @@
     "clean:dist": "shx rm -rf dist/**/* && true",
     "clean:tests": "shx rm -rf dist/**/* && shx rm -rf test-es5/**/* && true",
     "lint": "eslint src/**/*.js -c conf/build/eslint.json",
-    "test": "npm run clean:tests && npm run build:tests && mocha test-es5/**/*.js",
+    "test": "npm run build:tests && mocha test-es5/**/*.js",
     "coverage": "npm run clean:tests && npm run build:tests && istanbul cover node_modules/mocha/bin/_mocha -- -u exports -R spec test-es5/**/*.js",
     "build:tests": "babel src -d dist && babel test -d test-es5",
     "build:dist": "babel src -d dist",
@@ -36,6 +36,7 @@
     "shx": "0.1.4"
   },
   "dependencies": {
+    "lodash": "4.17.4",
     "winston": "2.2.0"
   }
 }

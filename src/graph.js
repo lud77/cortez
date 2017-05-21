@@ -1,6 +1,17 @@
+import _ from "lodash";
+
 import sequenceFactory from "./sequence";
 
-const factory = (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => {
+/**
+ * options:
+ * - allowUndirected
+ * - onAddNode
+ * - onAddEdge
+ * - onRemoveNode
+ * - onRemoveEdge
+ */
+
+export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => {
  	let { nodes, edges, nodeCount, edgeCount } = Object.assign({}, {
 		nodeCount: 0,
 		edgeCount: 0,
@@ -134,17 +145,40 @@ const factory = (getId, nodeFactory, edgeFactory) => (fragment, options = {}) =>
 		delete edges[id];
 	};
 
-	const hasEdge = (from, to) => !!from.outbound[getId(to)];
+	const getNode = (node) => nodes[getId(node)];
+	const hasDirectedEdge = (from, to) => !!getNode(from).outbound[getId(to)];
+
+	// todo: maintain a flag for each entry in inbound/outbound to avoid the O(n) test and make this O(1)
+	const hasUndirectedEdge = (from, to) => {
+		const candidates = getNode(from).outbound[getId(to)];
+		return _.find(candidates, { directed: false });
+	};
+
+	const hasEdge = (from, to) => {
+		if (hasDirectedEdge(from, to)) return true;
+		if (!options.allowUndirected) return false;
+		return hasUndirectedEdge(to, from);
+	};
+
 	const getNodeById = (nodeId) => nodes[nodeId];
 	const getEdgeById = (edgeId) => edges[edgeId];
-	const getNodes = () => nodes;
-	const getEdges = () => edges;
+	const inflateNodes = (nodeIds) => _.map(nodeIds, (id) => nodes[id]);
+	const inflateEdges = (edgeIds) => _.map(edgeIds, (id) => edges[id]);
+	const link = (from, to, payload, metadata, directed) => addEdge(edgeFactory(getId(from), getId(to), payload, metadata, directed));
+	const getNodes = (query) => query ? _.chain(nodes).filter((entry) => _.matches(query)(entry.payload)).value() : nodes;
+	const squashEdges = (groups) => _.flatten(_.values(groups));
 
-	const link = (from, to, payload) => addEdge(edgeFactory(
-		getId(from),
-		getId(to),
-		payload
-	));
+	const getEdges = (pool, query) => {
+		const edgeMap = _.chain(pool).map((id) => edges[id]);
+		const queriedEdges = query ? edgeMap.filter((entry) => _.matches(query)(entry.payload)) : edgeMap;
+		return queriedEdges.value();
+	};
+
+	const getEdgesFrom = (node, query) => getEdges(squashEdges(node.outbound), query);
+	const getEdgesTo = (node, query) => getEdges(squashEdges(node.inbound), query);
+	const getEdgesBetween = (from, to, query) => getEdges(getNode(from).outbound[getId(to)], query)
+	const getLinkedNodes = (node, query) => _.map(getEdgesFrom(node, query), (edge) => nodes[edge.to]);
+	const getLinkingNodes = (node, query) => _.map(getEdgesTo(node, query), (edge) => nodes[edge.from]);
 
  	return {
  		nodes,
@@ -160,10 +194,14 @@ const factory = (getId, nodeFactory, edgeFactory) => (fragment, options = {}) =>
  		removeEdge,
  		getNodeById,
  		getEdgeById,
- 		getNodes,
- 		getEdges,
- 		link
+		inflateNodes,
+		inflateEdges,
+ 		link,
+		getNodes,
+		getEdgesFrom,
+		getEdgesTo,
+		getEdgesBetween,
+		getLinkedNodes,
+		getLinkingNodes
  	};
 };
-
-export default { factory };

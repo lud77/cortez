@@ -4,13 +4,26 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
+var _lodash = require("lodash");
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _sequence = require("./sequence");
 
 var _sequence2 = _interopRequireDefault(_sequence);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var factory = function factory(getId, nodeFactory, edgeFactory) {
+/**
+ * options:
+ * - allowUndirected
+ * - onAddNode
+ * - onAddEdge
+ * - onRemoveNode
+ * - onRemoveEdge
+ */
+
+exports.default = function (getId, nodeFactory, edgeFactory) {
 	return function (fragment) {
 		var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
@@ -151,24 +164,81 @@ var factory = function factory(getId, nodeFactory, edgeFactory) {
 			delete edges[id];
 		};
 
-		var hasEdge = function hasEdge(from, to) {
-			return !!from.outbound[getId(to)];
+		var getNode = function getNode(node) {
+			return nodes[getId(node)];
 		};
+		var hasDirectedEdge = function hasDirectedEdge(from, to) {
+			return !!getNode(from).outbound[getId(to)];
+		};
+
+		// todo: maintain a flag for each entry in inbound/outbound to avoid the O(n) test and make this O(1)
+		var hasUndirectedEdge = function hasUndirectedEdge(from, to) {
+			var candidates = getNode(from).outbound[getId(to)];
+			return _lodash2.default.find(candidates, { directed: false });
+		};
+
+		var hasEdge = function hasEdge(from, to) {
+			if (hasDirectedEdge(from, to)) return true;
+			if (!options.allowUndirected) return false;
+			return hasUndirectedEdge(to, from);
+		};
+
 		var getNodeById = function getNodeById(nodeId) {
 			return nodes[nodeId];
 		};
 		var getEdgeById = function getEdgeById(edgeId) {
 			return edges[edgeId];
 		};
-		var getNodes = function getNodes() {
-			return nodes;
+		var inflateNodes = function inflateNodes(nodeIds) {
+			return _lodash2.default.map(nodeIds, function (id) {
+				return nodes[id];
+			});
 		};
-		var getEdges = function getEdges() {
-			return edges;
+		var inflateEdges = function inflateEdges(edgeIds) {
+			return _lodash2.default.map(edgeIds, function (id) {
+				return edges[id];
+			});
+		};
+		var link = function link(from, to, payload, metadata, directed) {
+			return addEdge(edgeFactory(getId(from), getId(to), payload, metadata, directed));
+		};
+		var getNodes = function getNodes(query) {
+			return query ? _lodash2.default.chain(nodes).filter(function (entry) {
+				return _lodash2.default.matches(query)(entry.payload);
+			}).value() : nodes;
+		};
+		var squashEdges = function squashEdges(groups) {
+			return _lodash2.default.flatten(_lodash2.default.values(groups));
 		};
 
-		var link = function link(from, to, payload) {
-			return addEdge(edgeFactory(getId(from), getId(to), payload));
+		var getEdges = function getEdges(pool, query) {
+			var edgeMap = _lodash2.default.chain(pool).map(function (id) {
+				return edges[id];
+			});
+			var queriedEdges = query ? edgeMap.filter(function (entry) {
+				return _lodash2.default.matches(query)(entry.payload);
+			}) : edgeMap;
+			return queriedEdges.value();
+		};
+
+		var getEdgesFrom = function getEdgesFrom(node, query) {
+			return getEdges(squashEdges(node.outbound), query);
+		};
+		var getEdgesTo = function getEdgesTo(node, query) {
+			return getEdges(squashEdges(node.inbound), query);
+		};
+		var getEdgesBetween = function getEdgesBetween(from, to, query) {
+			return getEdges(getNode(from).outbound[getId(to)], query);
+		};
+		var getLinkedNodes = function getLinkedNodes(node, query) {
+			return _lodash2.default.map(getEdgesFrom(node, query), function (edge) {
+				return nodes[edge.to];
+			});
+		};
+		var getLinkingNodes = function getLinkingNodes(node, query) {
+			return _lodash2.default.map(getEdgesTo(node, query), function (edge) {
+				return nodes[edge.from];
+			});
 		};
 
 		return {
@@ -185,11 +255,15 @@ var factory = function factory(getId, nodeFactory, edgeFactory) {
 			removeEdge: removeEdge,
 			getNodeById: getNodeById,
 			getEdgeById: getEdgeById,
+			inflateNodes: inflateNodes,
+			inflateEdges: inflateEdges,
+			link: link,
 			getNodes: getNodes,
-			getEdges: getEdges,
-			link: link
+			getEdgesFrom: getEdgesFrom,
+			getEdgesTo: getEdgesTo,
+			getEdgesBetween: getEdgesBetween,
+			getLinkedNodes: getLinkedNodes,
+			getLinkingNodes: getLinkingNodes
 		};
 	};
 };
-
-exports.default = { factory: factory };

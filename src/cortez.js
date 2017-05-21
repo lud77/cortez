@@ -1,36 +1,16 @@
-import graphFactory from "./graph";
+import _ from "lodash";
 
-const { factory } = graphFactory;
+import constants from "./constants";
+import graph from "./graph";
+import node from "./node";
+import edge from "./edge";
 
-const getId = (element) => (element && typeof(element) === "object" && element.id !== undefined) ? element.id : element;
-
-const node = (payload, metadata) => ({
-	type: "node",
-	payload,
-	metadata,
-	numOutbound: 0,
-	numInbound: 0,
-	outbound: {},
-	inbound: {},
-	inGraph: () => this.graph !== undefined,
-	getOutboundEdges: () => this.outbound,
-	getInboundEdges: () => this.inbound
-});
-
-const edge = (from, to, payload, metadata) => ({
-	type: "edge",
-	payload,
-	metadata,
-	from: getId(from),
-	to: getId(to),
-	inGraph: () => this.graph !== undefined
-});
-
-const graph = factory(getId, node, edge);
+const getId = (element) => _.get(element, 'id', element);
 
 export default {
 	getId,
-	graph,
 	node,
-	edge
+	edge: edge(getId),
+	//undirectedEdge: (from, to, payload, metadata) => edgeFactory(from, to, payload, metadata, false),
+	graph: graph(getId, node, edge)
 };
