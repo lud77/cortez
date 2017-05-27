@@ -4,9 +4,29 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _lodash = require("lodash");
+var _map = require("lodash/map");
 
-var _lodash2 = _interopRequireDefault(_lodash);
+var _map2 = _interopRequireDefault(_map);
+
+var _find = require("lodash/find");
+
+var _find2 = _interopRequireDefault(_find);
+
+var _matches = require("lodash/matches");
+
+var _matches2 = _interopRequireDefault(_matches);
+
+var _flatten = require("lodash/flatten");
+
+var _flatten2 = _interopRequireDefault(_flatten);
+
+var _values = require("lodash/values");
+
+var _values2 = _interopRequireDefault(_values);
+
+var _filter = require("lodash/filter");
+
+var _filter2 = _interopRequireDefault(_filter);
 
 var _sequence = require("./sequence");
 
@@ -15,13 +35,10 @@ var _sequence2 = _interopRequireDefault(_sequence);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
- * @param fragment is a Cortez object or a JSON-serialized Cortez instance
- * @param options
- * - allowUndirected
- * - onAddNode
- * - onAddEdge
- * - onRemoveNode
- * - onRemoveEdge
+ * Create a graph
+ * @namespace graph
+ * @param fragment - a Cortez object or a JSON-serialized Cortez instance
+ * @param options - allowUndirected, onAddNode, onAddEdge, onRemoveNode, onRemoveEdge
  */
 exports.default = function (getId, nodeFactory, edgeFactory) {
 	return function (fragment) {
@@ -86,7 +103,10 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Add a node to the graph
-   * @param node is a node object generated with cortez.node()
+   * @function addNode
+   * @memberof graph
+   * @param node - a node object generated with cortez.node()
+   * @fires options.onAddNode
    */
 		var addNode = function addNode(node) {
 			var id = nodeSeq.getNext();
@@ -105,7 +125,10 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Add an edge to the graph
-   * @param edge is an edge generated with cortez.edge()
+   * @function addEdge
+   * @memberof graph
+   * @param edge - an edge generated with cortez.edge()
+   * @fires options.onAddEdge
    */
 		var addEdge = function addEdge(edge) {
 			var id = edgeSeq.getNext();
@@ -137,7 +160,10 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Remove a node from a graph
-   * @param node is a node object or the id of a node
+   * @function removeNode
+   * @memberof graph
+   * @param node - a node object or the id of a node
+   * @fires options.onRemoveNode
    */
 		var removeNode = function removeNode(node) {
 			var id = getId(node);
@@ -166,7 +192,10 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Remove an edge from a graph
-   * @param edge is an edge object or the id of an edge
+   * @function removeEdge
+   * @memberof graph
+   * @param edge - an edge object or the id of an edge
+   * @fires options.onRemoveEdge
    */
 		var removeEdge = function removeEdge(edge) {
 			var id = getId(edge);
@@ -182,7 +211,9 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Retrieve a node given a node object or its id
-   * @param node is a node object or the id of a node
+   * @function getNode
+   * @memberof graph
+   * @param node - a node object or the id of a node
    */
 		var getNode = function getNode(node) {
 			return nodes[getId(node)];
@@ -190,7 +221,9 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Retrieve an edge given an edge object or its id
-   * @param node is an edge object or the id of an edge
+   * @function getEdge
+   * @memberof graph
+   * @param node - an edge object or the id of an edge
    */
 		var getEdge = function getEdge(edge) {
 			return edges[getId(edge)];
@@ -198,8 +231,10 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Checks if a couple of nodes has a directed edge connecting them
-   * @param from a node
-   * @param to a node
+   * @function hasDirectedEdge
+   * @memberof graph
+   * @param from - a node
+   * @param to - a node
    */
 		var hasDirectedEdge = function hasDirectedEdge(from, to) {
 			return !!getNode(from).outbound[getId(to)];
@@ -207,53 +242,62 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Checks if a couple of nodes has an undirected edge connecting them
-   * @param from a node
-   * @param to a node
+   * @function hasUndirectedEdge
+   * @memberof graph
+   * @param from - a node
+   * @param to - a node
    */
 		var hasUndirectedEdge = function hasUndirectedEdge(from, to) {
 			// todo: maintain a flag for each entry in inbound/outbound to avoid the O(n) test and make this O(1)
 			var candidates = getNode(from).outbound[getId(to)];
-			return _lodash2.default.find(candidates, { directed: false });
+			return (0, _find2.default)(candidates, { directed: false });
 		};
 
 		/**
    * Checks if a couple of nodes has a directed or undirected edge connecting them
-   * @param from a node
-   * @param to a node
+   * @function hasEdge
+   * @memberof graph
+   * @param from - a node
+   * @param to - a node
    */
 		var hasEdge = function hasEdge(from, to) {
 			if (hasDirectedEdge(from, to)) return true;
-			if (!options.allowUndirected) return false;
 			return hasUndirectedEdge(to, from);
 		};
 
 		/**
    * Retrieves a list of nodes
-   * @param nodeIds an array of ids of nodes to be retrieved
+   * @function inflateNodes
+   * @memberof graph
+   * @param nodeIds - an array of ids of nodes to be retrieved
    */
 		var inflateNodes = function inflateNodes(nodeIds) {
-			return _lodash2.default.map(nodeIds, function (id) {
+			return (0, _map2.default)(nodeIds, function (id) {
 				return nodes[id];
 			});
 		};
 
 		/**
    * Retrieves a list of edges
-   * @param edgeIds an array of ids of edges to be retrieved
+   * @function inflateEdges
+   * @memberof graph
+   * @param edgeIds - an array of ids of edges to be retrieved
    */
 		var inflateEdges = function inflateEdges(edgeIds) {
-			return _lodash2.default.map(edgeIds, function (id) {
+			return (0, _map2.default)(edgeIds, function (id) {
 				return edges[id];
 			});
 		};
 
 		/**
    * Shortcut method to create an edge between two nodes
-   * @param from a node
-   * @param to a node
-   * @param payload an object to be stored in the node
-   * @param metadata an additional object to be stored in the node
-   * @param directed whether the edge must be directed or not
+   * @function link
+   * @memberof graph
+   * @param from - a node
+   * @param to - a node
+   * @param payload - an object to be stored in the node
+   * @param metadata - an additional object to be stored in the node
+   * @param directed - whether the edge must be directed or not
    */
 		var link = function link(from, to, payload, metadata, directed) {
 			return addEdge(edgeFactory(getId(from), getId(to), payload, metadata, directed || !options.allowUndirected));
@@ -261,37 +305,42 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Retrieve nodes matching a query
-   * @param query an object with a list of properties to be matched
+   * @function getNodes
+   * @memberof graph
+   * @param query - an object with a list of properties to be matched
    */
 		var getNodes = function getNodes(query) {
-			return query ? _lodash2.default.chain(nodes).filter(function (entry) {
-				return _lodash2.default.matches(query)(entry.payload);
-			}).value() : nodes;
+			return query ? (0, _filter2.default)(nodes, function (entry) {
+				return (0, _matches2.default)(query)(entry.payload);
+			}) : nodes;
 		};
 
 		var squashEdges = function squashEdges(groups) {
-			return _lodash2.default.flatten(_lodash2.default.values(groups));
+			return (0, _flatten2.default)((0, _values2.default)(groups));
 		};
 
 		/**
    * Retrieve edges matching a query from a list of candidates
-   * @param pool a list of candidate ids of edges
-   * @param query an object with a list of properties to be matched
+   * @function getEdges
+   * @memberof graph
+   * @param pool - a list of candidate ids of edges
+   * @param query - an object with a list of properties to be matched
    */
 		var getEdges = function getEdges(pool, query) {
-			var edgeMap = _lodash2.default.chain(pool).map(function (id) {
+			var edgeMap = (0, _map2.default)(pool, function (id) {
 				return edges[id];
 			});
-			var queriedEdges = query ? edgeMap.filter(function (entry) {
-				return _lodash2.default.matches(query)(entry.payload);
+			return query ? (0, _filter2.default)(edgeMap, function (entry) {
+				return (0, _matches2.default)(query)(entry.payload);
 			}) : edgeMap;
-			return queriedEdges.value();
 		};
 
 		/**
    * Retrieve edges extending from a given node
-   * @param node the source node
-   * @param query an object with a list of properties to be matched
+   * @function getEdgesFrom
+   * @memberof graph
+   * @param node - the source node
+   * @param query - an object with a list of properties to be matched
    */
 		var getEdgesFrom = function getEdgesFrom(node, query) {
 			return getEdges(squashEdges(node.outbound), query);
@@ -299,8 +348,10 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Retrieve edges reaching a given node
-   * @param node the target node
-   * @param query an object with a list of properties to be matched
+   * @function getEdgesTo
+   * @memberof graph
+   * @param node - the target node
+   * @param query - an object with a list of properties to be matched
    */
 		var getEdgesTo = function getEdgesTo(node, query) {
 			return getEdges(squashEdges(node.inbound), query);
@@ -308,9 +359,11 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Retrieve edges extending from a given node to another given node
-   * @param node the source node
-   * @param node the target node
-   * @param query an object with a list of properties to be matched
+   * @function getEdgesBetween
+   * @memberof graph
+   * @param node - the source node
+   * @param node - the target node
+   * @param query - an object with a list of properties to be matched
    */
 		var getEdgesBetween = function getEdgesBetween(from, to, query) {
 			return getEdges(getNode(from).outbound[getId(to)], query);
@@ -318,22 +371,26 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		/**
    * Retrieve nodes reached by edges that extend from a given node
-   * @param node the target node
-   * @param query an object with a list of properties to be matched
+   * @function getLinkedNodes
+   * @memberof graph
+   * @param node - the target node
+   * @param query - an object with a list of properties to be matched
    */
 		var getLinkedNodes = function getLinkedNodes(node, query) {
-			return _lodash2.default.map(getEdgesFrom(node, query), function (edge) {
+			return (0, _map2.default)(getEdgesFrom(node, query), function (edge) {
 				return nodes[edge.to];
 			});
 		};
 
 		/**
   * Retrieve nodes having edges that reach a given node
-  * @param node the target node
-  * @param query an object with a list of properties to be matched
+  * @function getLinkingNodes
+  * @memberof graph
+  * @param node - the target node
+  * @param query - an object with a list of properties to be matched
   */
 		var getLinkingNodes = function getLinkingNodes(node, query) {
-			return _lodash2.default.map(getEdgesTo(node, query), function (edge) {
+			return (0, _map2.default)(getEdgesTo(node, query), function (edge) {
 				return nodes[edge.from];
 			});
 		};
@@ -343,7 +400,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			edges: edges,
 			nodeCount: nodeCount,
 			edgeCount: edgeCount,
-			hasEdge: hasEdge,
+			hasEdge: !options.allowUndirected ? hasDirectedEdge : hasEdge,
 			pack: pack,
 			mergeWith: mergeWith,
 			addNode: addNode,

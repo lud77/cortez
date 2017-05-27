@@ -4,9 +4,9 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _lodash = require("lodash");
+var _get = require("lodash/get");
 
-var _lodash2 = _interopRequireDefault(_lodash);
+var _get2 = _interopRequireDefault(_get);
 
 var _constants = require("./constants");
 
@@ -27,9 +27,12 @@ var _edge2 = _interopRequireDefault(_edge);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var getId = function getId(element) {
-	return _lodash2.default.get(element, 'id', element);
+	return (0, _get2.default)(element, 'id', element);
 };
 
+/**
+ * Cortez object
+ */
 exports.default = {
 	getId: getId,
 	node: _node2.default,

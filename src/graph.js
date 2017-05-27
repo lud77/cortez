@@ -1,4 +1,9 @@
-import _ from "lodash";
+import map from "lodash/map";
+import find from "lodash/find";
+import matches from "lodash/matches";
+import flatten from "lodash/flatten";
+import values from "lodash/values";
+import filter from "lodash/filter";
 
 import sequenceFactory from "./sequence";
 
@@ -205,7 +210,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	const hasUndirectedEdge = (from, to) => {
 		// todo: maintain a flag for each entry in inbound/outbound to avoid the O(n) test and make this O(1)
 		const candidates = getNode(from).outbound[getId(to)];
-		return _.find(candidates, { directed: false });
+		return find(candidates, { directed: false });
 	};
 
 	/**
@@ -226,7 +231,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	 * @memberof graph
 	 * @param nodeIds - an array of ids of nodes to be retrieved
 	 */
-	const inflateNodes = (nodeIds) => _.map(nodeIds, (id) => nodes[id]);
+	const inflateNodes = (nodeIds) => map(nodeIds, (id) => nodes[id]);
 
 	/**
 	 * Retrieves a list of edges
@@ -234,7 +239,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	 * @memberof graph
 	 * @param edgeIds - an array of ids of edges to be retrieved
 	 */
-	const inflateEdges = (edgeIds) => _.map(edgeIds, (id) => edges[id]);
+	const inflateEdges = (edgeIds) => map(edgeIds, (id) => edges[id]);
 
 	/**
 	 * Shortcut method to create an edge between two nodes
@@ -254,9 +259,9 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	 * @memberof graph
 	 * @param query - an object with a list of properties to be matched
 	 */
-	const getNodes = (query) => query ? _.chain(nodes).filter((entry) => _.matches(query)(entry.payload)).value() : nodes;
+	const getNodes = (query) => query ? filter(nodes, (entry) => matches(query)(entry.payload)) : nodes;
 
-	const squashEdges = (groups) => _.flatten(_.values(groups));
+	const squashEdges = (groups) => flatten(values(groups));
 
 	/**
 	 * Retrieve edges matching a query from a list of candidates
@@ -266,9 +271,8 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	 * @param query - an object with a list of properties to be matched
 	 */
 	const getEdges = (pool, query) => {
-		const edgeMap = _.chain(pool).map((id) => edges[id]);
-		const queriedEdges = query ? edgeMap.filter((entry) => _.matches(query)(entry.payload)) : edgeMap;
-		return queriedEdges.value();
+		const edgeMap = map(pool, (id) => edges[id]);
+		return query ? filter(edgeMap, (entry) => matches(query)(entry.payload)) : edgeMap;
 	};
 
 	/**
@@ -306,7 +310,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	 * @param node - the target node
 	 * @param query - an object with a list of properties to be matched
 	 */
-	const getLinkedNodes = (node, query) => _.map(getEdgesFrom(node, query), (edge) => nodes[edge.to]);
+	const getLinkedNodes = (node, query) => map(getEdgesFrom(node, query), (edge) => nodes[edge.to]);
 
 	/**
 	* Retrieve nodes having edges that reach a given node
@@ -315,7 +319,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	* @param node - the target node
 	* @param query - an object with a list of properties to be matched
 	*/
-	const getLinkingNodes = (node, query) => _.map(getEdgesTo(node, query), (edge) => nodes[edge.from]);
+	const getLinkingNodes = (node, query) => map(getEdgesTo(node, query), (edge) => nodes[edge.from]);
 
  	return {
  		nodes,

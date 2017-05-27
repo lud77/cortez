@@ -1,11 +1,11 @@
-import _ from "lodash";
+import get from "lodash/get";
 
 import constants from "./constants";
 import graph from "./graph";
 import node from "./node";
 import edge from "./edge";
 
-const getId = (element) => _.get(element, 'id', element);
+const getId = (element) => get(element, 'id', element);
 
 /**
  * Cortez object
