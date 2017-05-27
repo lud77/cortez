@@ -217,7 +217,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	 */
 	const hasEdge = (from, to) => {
 		if (hasDirectedEdge(from, to)) return true;
-		if (!options.allowUndirected) return false;
 		return hasUndirectedEdge(to, from);
 	};
 
@@ -323,7 +322,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
  		edges,
  		nodeCount,
  		edgeCount,
-		hasEdge,
+		hasEdge: !options.allowUndirected ? hasDirectedEdge : hasEdge,
  		pack,
  		mergeWith,
  		addNode,
