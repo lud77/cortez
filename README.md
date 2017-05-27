@@ -1,11 +1,9 @@
-# cortez v0.1.1
+# cortez v0.1.2
 > Graph data structure
 
 
 
 ## Installation
-
-Clone the repository
 
 	npm i --save cortez
 
@@ -34,7 +32,7 @@ Install the package and open docs/index.html in the browser
 
 ## Roadmap
 
-- Detail features and write documentation
+- Detail features
 - Add support for undirected graphs
 - Add a suite of basic algorithms such as graph search and coverage
 
