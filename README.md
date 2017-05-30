@@ -10,12 +10,14 @@
 
 ## Why?
 
-Cortez is a graph data structure written in ES6 decoupling structure from content to merging of different graphs and concurrent graph modification in a distributed environment.
+Cortez is a graph data structure written in ES6 decoupling structure from content to allow merging of different graphs and concurrent graph modification in a distributed environment.
 
 
 # Features / Usage
 
 The ES5 code is in the dist folder, while the src folder contains the ES6 sources.
+
+Plain and generator-based versions of all query and graph traversal methods.
 
 
 
