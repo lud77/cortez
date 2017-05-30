@@ -32,7 +32,6 @@ Install the package and open docs/index.html in the browser
 
 ## Roadmap
 
-- Detail features
 - Add support for undirected graphs
 - Add a suite of basic algorithms such as graph search and coverage
 
