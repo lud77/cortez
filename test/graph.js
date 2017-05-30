@@ -1,6 +1,18 @@
 import { assert } from 'chai';
 
 import cz from '../dist/cortez';
+import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "../dist/generator";
+
+function drainAndCount(gen) {
+	let count = 0;
+	while (true) {
+		const item = gen.next();
+		if (item.done) break;
+		count++;
+	}
+
+	return count;
+}
 
 describe('Graph', function() {
     it('should retrieve the id property of an object', () => {
@@ -49,9 +61,9 @@ describe('Graph', function() {
 
 	it('should retrieve the specified nodes', () => {
 		const graph = cz.graph();
-		const node1 = graph.addNode(cz.node({ 'user': 'x', 'age': 20, 'active': true }));
-		const node2 = graph.addNode(cz.node({ 'user': 'y', 'age': 20, 'active': false }));
-		const node3 = graph.addNode(cz.node({ 'user': 'z', 'age': 30, 'active': false }));
+		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
+		const node2 = graph.addNode(cz.node({ user: 'y', age: 20, active: false }));
+		const node3 = graph.addNode(cz.node({ user: 'z', age: 30, active: false }));
 		const nodes = graph.inflateNodes([node1.id, node2.id]);
 		assert.equal(nodes.length, 2);
 		assert.equal(node1.payload.user, nodes[0].payload.user);
@@ -95,10 +107,10 @@ describe('Graph', function() {
 
 	it('should return the selected node', () => {
 		const graph = cz.graph();
-		const node1 = graph.addNode(cz.node({ 'user': 'x', 'age': 20, 'active': true }));
-		const node2 = graph.addNode(cz.node({ 'user': 'y', 'age': 20, 'active': false }));
-		const node3 = graph.addNode(cz.node({ 'user': 'z', 'age': 30, 'active': false }));
-		const retrieved = graph.getNodes({ 'age': 20, 'active': true });
+		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
+		const node2 = graph.addNode(cz.node({ user: 'y', age: 20, active: false }));
+		const node3 = graph.addNode(cz.node({ user: 'z', age: 30, active: false }));
+		const retrieved = graph.getNodes({ age: 20, active: true });
 		assert.equal(retrieved.length, 1);
 		assert.equal(node1.id, retrieved[0].id);
 	});
@@ -129,9 +141,9 @@ describe('Graph', function() {
 
 	it('should return the linked nodes', () => {
 		const graph = cz.graph();
-		const node1 = graph.addNode(cz.node({ 'user': 'x', 'age': 20, 'active': true }));
-		const node2 = graph.addNode(cz.node({ 'user': 'y', 'age': 20, 'active': false }));
-		const node3 = graph.addNode(cz.node({ 'user': 'z', 'age': 30, 'active': false }));
+		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
+		const node2 = graph.addNode(cz.node({ user: 'y', age: 20, active: false }));
+		const node3 = graph.addNode(cz.node({ user: 'z', age: 30, active: false }));
 		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'colleague' }));
 		const edge3 = graph.addEdge(cz.edge(node1, node3, { type: 'friend' }));
@@ -143,9 +155,9 @@ describe('Graph', function() {
 
 	it('should return the linking nodes', () => {
 		const graph = cz.graph();
-		const node1 = graph.addNode(cz.node({ 'user': 'x', 'age': 20, 'active': true }));
-		const node2 = graph.addNode(cz.node({ 'user': 'y', 'age': 20, 'active': false }));
-		const node3 = graph.addNode(cz.node({ 'user': 'z', 'age': 30, 'active': false }));
+		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
+		const node2 = graph.addNode(cz.node({ user: 'y', age: 20, active: false }));
+		const node3 = graph.addNode(cz.node({ user: 'z', age: 30, active: false }));
 		const edge1 = graph.addEdge(cz.edge(node2, node1, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node2, node1, { type: 'colleague' }));
 		const edge3 = graph.addEdge(cz.edge(node3, node1, { type: 'friend' }));
@@ -153,5 +165,132 @@ describe('Graph', function() {
 		assert.equal(nodes.length, 2);
 		assert.equal(nodes[0].payload.user, 'y');
 		assert.equal(nodes[1].payload.user, 'z');
+	});
+
+	it('should return all the nodes as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
+		const node2 = graph.addNode(cz.node({ user: 'y', age: 20, active: false }));
+		const node3 = graph.addNode(cz.node({ user: 'z', age: 30, active: false }));
+		const gen = graph.inflateNodesGen(yieldAll([node1.id, node2.id]));
+		assert.equal(node1.payload.user, gen.next().value.payload.user);
+		assert.equal(node2.payload.user, gen.next().value.payload.user);
+		assert.equal(true, gen.next().done);
+	});
+
+	it('should retrieve the specified edges as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node());
+		const node2 = graph.addNode(cz.node());
+		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
+		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'colleague' }));
+		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
+		const gen = graph.inflateEdgesGen(yieldAll([edge1.id, edge2.id]));
+		assert.equal(edge1.payload.type, gen.next().value.payload.type);
+		assert.equal(edge2.payload.type, gen.next().value.payload.type);
+		assert.equal(true, gen.next().done);
+	});
+
+	it('should return all the nodes in the graph as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
+		const node2 = graph.addNode(cz.node({ user: 'y', age: 20, active: false }));
+		const node3 = graph.addNode(cz.node({ user: 'z', age: 30, active: false }));
+		const gen = graph.getNodesGen();
+		assert.equal(node1.payload.user, gen.next().value.payload.user);
+		assert.equal(node2.payload.user, gen.next().value.payload.user);
+		assert.equal(node3.payload.user, gen.next().value.payload.user);
+		assert.equal(true, gen.next().done);
+	});
+
+	it('should return the selected node as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
+		const node2 = graph.addNode(cz.node({ user: 'y', age: 20, active: false }));
+		const node3 = graph.addNode(cz.node({ user: 'z', age: 30, active: false }));
+		const gen = graph.getNodesGen({ age: 20, active: true });
+		assert.equal(node1.payload.user, gen.next().value.payload.user);
+		assert.equal(true, gen.next().done);
+	});
+
+	it('should return all edges from a node as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node());
+		const node2 = graph.addNode(cz.node());
+		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
+		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'colleague' }));
+		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
+		const gen = graph.getEdgesFromGen(node1);
+		assert.equal(edge1.id, gen.next().value.id);
+		assert.equal(edge2.id, gen.next().value.id);
+		assert.equal(edge3.id, gen.next().value.id);
+		assert.equal(true, gen.next().done);
+	});
+
+	it('should return the selected edges from a node as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node());
+		const node2 = graph.addNode(cz.node());
+		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
+		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
+		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
+		const gen = graph.getEdgesFromGen(node1, { type: 'friend' });
+		assert.equal(edge1.id, gen.next().value.id);
+		assert.equal(edge2.id, gen.next().value.id);
+		assert.equal(true, gen.next().done);
+	});
+
+	it('should return the selected edges between two nodes as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node());
+		const node2 = graph.addNode(cz.node());
+		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
+		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
+		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
+		const gen = graph.getEdgesBetweenGen(node1, node2, { type: 'friend' });
+		assert.equal(edge1.id, gen.next().value.id);
+		assert.equal(edge2.id, gen.next().value.id);
+		assert.equal(true, gen.next().done);
+	});
+
+	it('should return the selected edges to a node as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node());
+		const node2 = graph.addNode(cz.node());
+		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
+		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
+		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
+		const gen = graph.getEdgesToGen(node2, { type: 'friend' });
+		assert.equal(edge1.id, gen.next().value.id);
+		assert.equal(edge2.id, gen.next().value.id);
+		assert.equal(true, gen.next().done);
+	});
+
+	it('should return the linked nodes as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
+		const node2 = graph.addNode(cz.node({ user: 'y', age: 20, active: false }));
+		const node3 = graph.addNode(cz.node({ user: 'z', age: 30, active: false }));
+		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
+		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'colleague' }));
+		const edge3 = graph.addEdge(cz.edge(node1, node3, { type: 'friend' }));
+		const gen = graph.getLinkedNodesGen(node1, { type: 'friend' });
+		assert.equal(gen.next().value.payload.user, 'y');
+		assert.equal(gen.next().value.payload.user, 'z');
+		assert.equal(true, gen.next().done);
+	});
+
+	it('should return the linking nodes as a generator', () => {
+		const graph = cz.graph();
+		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
+		const node2 = graph.addNode(cz.node({ user: 'y', age: 20, active: false }));
+		const node3 = graph.addNode(cz.node({ user: 'z', age: 30, active: false }));
+		const edge1 = graph.addEdge(cz.edge(node2, node1, { type: 'friend' }));
+		const edge2 = graph.addEdge(cz.edge(node2, node1, { type: 'colleague' }));
+		const edge3 = graph.addEdge(cz.edge(node3, node1, { type: 'friend' }));
+		const gen = graph.getLinkingNodesGen(node1, { type: 'friend' });
+		assert.equal(gen.next().value.payload.user, 'y');
+		assert.equal(gen.next().value.payload.user, 'z');
+		assert.equal(true, gen.next().done);
 	});
 });

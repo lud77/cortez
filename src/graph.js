@@ -6,6 +6,7 @@ import values from "lodash/values";
 import filter from "lodash/filter";
 
 import sequenceFactory from "./sequence";
+import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "./generator";
 
 /**
  * Create a graph
@@ -193,12 +194,12 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	/**
 	 * Checks if a couple of nodes has a directed edge connecting them
-	 * @function hasDirectedEdge
+	 * @function hasDirectEdge
 	 * @memberof graph
 	 * @param from - a node
 	 * @param to - a node
 	 */
-	const hasDirectedEdge = (from, to) => !!getNode(from).outbound[getId(to)];
+	const hasDirectEdge = (from, to) => !!getNode(from).outbound[getId(to)];
 
 	/**
 	 * Checks if a couple of nodes has an undirected edge connecting them
@@ -207,22 +208,19 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	 * @param from - a node
 	 * @param to - a node
 	 */
-	const hasUndirectedEdge = (from, to) => {
-		// todo: maintain a flag for each entry in inbound/outbound to avoid the O(n) test and make this O(1)
-		const candidates = getNode(from).outbound[getId(to)];
-		return find(candidates, { directed: false });
-	};
+	// todo: maintain a flag for each entry in inbound/outbound to avoid the O(n) test and make this O(1)
+	const hasUndirectedEdge = (from, to) => find(getNode(from).outbound[getId(to)], { directed: false });
 
 	/**
-	 * Checks if a couple of nodes has a directed or undirected edge connecting them
-	 * @function hasEdge
+	 * Checks if a couple of nodes has at least one edge connecting them
+	 * @function hasAnyEdge
 	 * @memberof graph
 	 * @param from - a node
 	 * @param to - a node
 	 */
-	const hasEdge = (from, to) => {
+	const hasAnyEdge = (from, to) => {
 		if (hasDirectedEdge(from, to)) return true;
-		return hasUndirectedEdge(to, from);
+		return hasDirectedEdge(to, from);
 	};
 
 	/**
@@ -234,12 +232,32 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	const inflateNodes = (nodeIds) => map(nodeIds, (id) => nodes[id]);
 
 	/**
+	 * Retrieves a list of nodes as a generator
+	 * @function inflateNodesGen
+	 * @memberof graph
+	 * @param nodeIdsGen - a generator producing the ids of nodes to be retrieved
+	 */
+	const inflateNodesGen = function*(nodeIdsGen) {
+		yield* yieldMap(nodeIdsGen, (id) => nodes[id]);
+	};
+
+	/**
 	 * Retrieves a list of edges
 	 * @function inflateEdges
 	 * @memberof graph
 	 * @param edgeIds - an array of ids of edges to be retrieved
 	 */
 	const inflateEdges = (edgeIds) => map(edgeIds, (id) => edges[id]);
+
+	/**
+	 * Retrieves a list of edges as a generator
+	 * @function inflateEdgesGen
+	 * @memberof graph
+	 * @param edgeIdsGen - a generator producing the ids of edges to be retrieved
+	 */
+	const inflateEdgesGen = function*(edgeIdsGen) {
+		yield* yieldMap(edgeIdsGen, (id) => edges[id]);
+	};
 
 	/**
 	 * Shortcut method to create an edge between two nodes
@@ -261,7 +279,32 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	 */
 	const getNodes = (query) => query ? filter(nodes, (entry) => matches(query)(entry.payload)) : nodes;
 
+	const getNodesByQueryGen = function*(query) {
+		const matchQuery = matches(query);
+		const isMatch = (item) => matchQuery(item.payload);
+		yield* yieldMatching(yieldAll(nodes), isMatch);
+	};
+
+	/**
+	 * Returns a generator retrieving nodes matching a query
+	 * @function getNodesGen
+	 * @memberof graph
+	 * @param query - an object with a list of properties to be matched
+	 */
+	const getNodesGen = function*(query) {
+		if (!query) {
+			yield* yieldAll(nodes);
+		} else {
+			yield* getNodesByQueryGen(query);
+		}
+	};
+
+
 	const squashEdges = (groups) => flatten(values(groups));
+
+	const squashEdgesGen = function*(groups) {
+		yield* yieldUnion(map(groups, (group) => yieldAll(group)));
+	};
 
 	/**
 	 * Retrieve edges matching a query from a list of candidates
@@ -275,6 +318,28 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		return query ? filter(edgeMap, (entry) => matches(query)(entry.payload)) : edgeMap;
 	};
 
+	const getEdgesbyQueryGen = function*(generator, query) {
+		const matchQuery = matches(query);
+		const isMatch = (item) => matchQuery(item.payload);
+		yield* yieldMatching(generator, isMatch);
+	};
+
+	/**
+	 * Retrieve edges matching a query from a list of candidates, as a generator
+	 * @function getEdges
+	 * @memberof graph
+	 * @param edgeIdsGenerator - a generator producing the ids of candidate edges
+	 * @param query - an object with a list of properties to be matched
+	 */
+	const getEdgesGen = function*(edgeIdsGenerator, query) {
+		const edgesGenerator = yieldMap(edgeIdsGenerator, (id) => edges[id]);
+		if (!query) {
+			yield* edgesGenerator;
+		} else {
+			yield* getEdgesbyQueryGen(edgesGenerator, query);
+		}		
+	};
+
 	/**
 	 * Retrieve edges extending from a given node
 	 * @function getEdgesFrom
@@ -285,6 +350,17 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	const getEdgesFrom = (node, query) => getEdges(squashEdges(node.outbound), query);
 
 	/**
+	 * Retrieve edges extending from a given node
+	 * @function getEdgesFromGen
+	 * @memberof graph
+	 * @param node - the source node
+	 * @param query - an object with a list of properties to be matched
+	 */
+	const getEdgesFromGen = function*(node, query) {
+		yield* getEdgesGen(squashEdgesGen(node.outbound), query);
+	};
+
+	/**
 	 * Retrieve edges reaching a given node
 	 * @function getEdgesTo
 	 * @memberof graph
@@ -292,6 +368,17 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	 * @param query - an object with a list of properties to be matched
 	 */
 	const getEdgesTo = (node, query) => getEdges(squashEdges(node.inbound), query);
+
+	/**
+	 * Retrieve edges reaching a given node, as a generator
+	 * @function getEdgesToGen
+	 * @memberof graph
+	 * @param node - the target node
+	 * @param query - an object with a list of properties to be matched
+	 */
+	const getEdgesToGen = function*(node, query) {
+		yield* getEdgesGen(squashEdgesGen(node.inbound), query);
+	};
 
 	/**
 	 * Retrieve edges extending from a given node to another given node
@@ -304,6 +391,18 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	const getEdgesBetween = (from, to, query) => getEdges(getNode(from).outbound[getId(to)], query)
 
 	/**
+	 * Retrieve edges extending from a given node to another given node
+	 * @function getEdgesBetweenGen
+	 * @memberof graph
+	 * @param node - the source node
+	 * @param node - the target node
+	 * @param query - an object with a list of properties to be matched
+	 */
+	const getEdgesBetweenGen = function*(from, to, query) {
+		yield* getEdgesGen(yieldAll(getNode(from).outbound[getId(to)]), query);
+	};
+
+	/**
 	 * Retrieve nodes reached by edges that extend from a given node
 	 * @function getLinkedNodes
 	 * @memberof graph
@@ -313,20 +412,42 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	const getLinkedNodes = (node, query) => map(getEdgesFrom(node, query), (edge) => nodes[edge.to]);
 
 	/**
-	* Retrieve nodes having edges that reach a given node
-	* @function getLinkingNodes
-	* @memberof graph
-	* @param node - the target node
-	* @param query - an object with a list of properties to be matched
-	*/
+	 * Retrieve nodes reached by edges that extend from a given node, as a generator
+	 * @function getLinkedNodesGen
+	 * @memberof graph
+	 * @param node - the target node
+	 * @param query - an object with a list of properties to be matched
+	 */
+	const getLinkedNodesGen = function*(node, query) {
+		yield* yieldMap(getEdgesFromGen(node, query), (edge) => nodes[edge.to]);
+	};
+
+	/**
+	 * Retrieve nodes having edges that reach a given node
+	 * @function getLinkingNodes
+	 * @memberof graph
+	 * @param node - the target node
+	 * @param query - an object with a list of properties to be matched
+	 */
 	const getLinkingNodes = (node, query) => map(getEdgesTo(node, query), (edge) => nodes[edge.from]);
+
+	/**
+	 * Retrieve nodes having edges that reach a given node
+	 * @function getLinkingNodesGen
+	 * @memberof graph
+	 * @param node - the target node
+	 * @param query - an object with a list of properties to be matched
+	 */
+	const getLinkingNodesGen = function*(node, query) {
+		yield* yieldMap(getEdgesToGen(node, query), (edge) => nodes[edge.from]);	
+	};
 
  	return {
  		nodes,
  		edges,
  		nodeCount,
  		edgeCount,
-		hasEdge: !options.allowUndirected ? hasDirectedEdge : hasEdge,
+		hasAnyEdge: !options.allowUndirected ? hasDirectEdge : hasAnyEdge,
  		pack,
  		mergeWith,
  		addNode,
@@ -335,14 +456,24 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		getEdge,
  		removeNode,
  		removeEdge,
+ 		link,
+
 		inflateNodes,
 		inflateEdges,
- 		link,
 		getNodes,
 		getEdgesFrom,
 		getEdgesTo,
 		getEdgesBetween,
 		getLinkedNodes,
-		getLinkingNodes
+		getLinkingNodes,
+		
+		inflateNodesGen,
+		inflateEdgesGen,
+		getNodesGen,
+		getEdgesFromGen,
+		getEdgesToGen,
+		getEdgesBetweenGen,
+		getLinkedNodesGen,
+		getLinkingNodesGen
  	};
 };
