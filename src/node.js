@@ -11,5 +11,6 @@
 	numOutbound: 0,
 	numInbound: 0,
 	outbound: {},
-	inbound: {}
+	inbound: {},
+	hasUndirectedEdges: {}
 });

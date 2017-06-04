@@ -1,4 +1,4 @@
-# cortez v0.1.5
+# cortez v0.1.6
 > Graph data structure
 
 
@@ -41,7 +41,7 @@ Install the package and open docs/index.html in the browser to review the method
 - Add support for undirected graphs
 - Complete and expose fragment merging functionality
 - Add a suite of basic algorithms such as graph search and coverage
-- Provide better documentation and best practices
+- Provide better usage documentation and hints/best practices
 - Provide benchmarks
 
 

@@ -72,7 +72,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 			for (var e in edges) {
 				if (edges[e]) {
-					var id = newGraph.addAdge(Object.assign({}, edges[e]));
+					var id = newGraph.addEdge(Object.assign({}, edges[e]));
 					newGraph.edges[id].from = mapping[newGraph.edges[id].from];
 					newGraph.edges[id].to = mapping[newGraph.edges[id].to];
 				}
@@ -148,9 +148,23 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			}
 
 			nodes[edge.from].outbound[edge.to].push(id);
-			nodes[edge.to].inbound[edge.from].push(id);
 			nodes[edge.from].numOutbound++;
+
+			nodes[edge.to].inbound[edge.from].push(id);
 			nodes[edge.to].numInbound++;
+
+			if (options.allowUndirected && !edge.directed) {
+				if (!nodes[edge.from].hasUndirectedEdges[edge.to]) {
+					nodes[edge.from].hasUndirectedEdges[edge.to] = 0;
+				}
+
+				if (!nodes[edge.to].hasUndirectedEdges[edge.from]) {
+					nodes[edge.to].hasUndirectedEdges[edge.from] = 0;
+				}
+
+				nodes[edge.from].hasUndirectedEdges[edge.to]++;
+				nodes[edge.to].hasUndirectedEdges[edge.from]++;
+			}
 
 			if (options.onAddEdge) {
 				options.onAddEdge(edges[id], options.context);
@@ -201,10 +215,17 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
    */
 		var removeEdge = function removeEdge(edge) {
 			var id = getId(edge);
-			if (!edges[id]) return;
+
+			var edgeObj = edges[id];
+			if (!edgeObj) return;
 
 			if (options.onRemoveEdge) {
 				options.onRemoveEdge(edges[id], options.context);
+			}
+
+			if (options.allowUndirected && !edgeObj.directed) {
+				nodes[edgeObj.from].hasUndirectedEdges[edgeObj.to]--;
+				nodes[edgeObj.to].hasUndirectedEdges[edgeObj.from]--;
 			}
 
 			edgeCount--;
@@ -232,30 +253,33 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 		};
 
 		/**
-   * Checks if a couple of nodes has a directed edge connecting them
-   * @function hasDirectEdge
+   * Checks if a pair of nodes has a directed edge connecting them
+   * @function hasDirectedEdge
    * @memberof graph
    * @param from - a node
    * @param to - a node
    */
-		var hasDirectEdge = function hasDirectEdge(from, to) {
+		var hasDirectedEdge = function hasDirectedEdge(from, to) {
 			return !!getNode(from).outbound[getId(to)];
 		};
 
 		/**
-   * Checks if a couple of nodes has an undirected edge connecting them
+   * Checks if a pair of nodes has an undirected edge connecting them
    * @function hasUndirectedEdge
    * @memberof graph
    * @param from - a node
    * @param to - a node
    */
-		// todo: maintain a flag for each entry in inbound/outbound to avoid the O(n) test and make this O(1)
 		var hasUndirectedEdge = function hasUndirectedEdge(from, to) {
-			return (0, _find2.default)(getNode(from).outbound[getId(to)], { directed: false });
+			var hasUndirectedEdgesFrom = getNode(from).hasUndirectedEdges[getId(to)];
+			if (hasUndirectedEdgesFrom !== undefined && hasUndirectedEdgesFrom > 0) return true;
+
+			var hasUndirectedEdgesTo = getNode(to).hasUndirectedEdges[getId(from)];
+			return hasUndirectedEdgesFrom !== undefined && hasUndirectedEdgesFrom > 0;
 		};
 
 		/**
-   * Checks if a couple of nodes has at least one edge connecting them
+   * Checks if a pair of nodes has at least one edge connecting them
    * @function hasAnyEdge
    * @memberof graph
    * @param from - a node
@@ -263,7 +287,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
    */
 		var hasAnyEdge = function hasAnyEdge(from, to) {
 			if (hasDirectedEdge(from, to)) return true;
-			return hasDirectedEdge(to, from);
+			return hasUndirectedEdge(from, to);
 		};
 
 		/**
@@ -278,6 +302,12 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			});
 		};
 
+		/**
+   * Retrieves a list of nodes as a generator
+   * @function inflateNodesGen
+   * @memberof graph
+   * @param nodeIdsGen - a generator producing the ids of nodes to be retrieved
+   */
 		var inflateNodesGen = regeneratorRuntime.mark(function inflateNodesGen(nodeIdsGen) {
 			return regeneratorRuntime.wrap(function inflateNodesGen$(_context) {
 				while (1) {
@@ -307,6 +337,12 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			});
 		};
 
+		/**
+   * Retrieves a list of edges as a generator
+   * @function inflateEdgesGen
+   * @memberof graph
+   * @param edgeIdsGen - a generator producing the ids of edges to be retrieved
+   */
 		var inflateEdgesGen = regeneratorRuntime.mark(function inflateEdgesGen(edgeIdsGen) {
 			return regeneratorRuntime.wrap(function inflateEdgesGen$(_context2) {
 				while (1) {
@@ -464,6 +500,13 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			}, getEdgesbyQueryGen, this);
 		});
 
+		/**
+   * Retrieve edges matching a query from a list of candidates, as a generator
+   * @function getEdges
+   * @memberof graph
+   * @param edgeIdsGenerator - a generator producing the ids of candidate edges
+   * @param query - an object with a list of properties to be matched
+   */
 		var getEdgesGen = regeneratorRuntime.mark(function getEdgesGen(edgeIdsGenerator, query) {
 			var edgesGenerator;
 			return regeneratorRuntime.wrap(function getEdgesGen$(_context7) {
@@ -507,6 +550,13 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			return getEdges(squashEdges(node.outbound), query);
 		};
 
+		/**
+   * Retrieve edges extending from a given node
+   * @function getEdgesFromGen
+   * @memberof graph
+   * @param node - the source node
+   * @param query - an object with a list of properties to be matched
+   */
 		var getEdgesFromGen = regeneratorRuntime.mark(function getEdgesFromGen(node, query) {
 			return regeneratorRuntime.wrap(function getEdgesFromGen$(_context8) {
 				while (1) {
@@ -533,6 +583,13 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			return getEdges(squashEdges(node.inbound), query);
 		};
 
+		/**
+   * Retrieve edges reaching a given node, as a generator
+   * @function getEdgesToGen
+   * @memberof graph
+   * @param node - the target node
+   * @param query - an object with a list of properties to be matched
+   */
 		var getEdgesToGen = regeneratorRuntime.mark(function getEdgesToGen(node, query) {
 			return regeneratorRuntime.wrap(function getEdgesToGen$(_context9) {
 				while (1) {
@@ -560,6 +617,14 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			return getEdges(getNode(from).outbound[getId(to)], query);
 		};
 
+		/**
+   * Retrieve edges extending from a given node to another given node
+   * @function getEdgesBetweenGen
+   * @memberof graph
+   * @param node - the source node
+   * @param node - the target node
+   * @param query - an object with a list of properties to be matched
+   */
 		var getEdgesBetweenGen = regeneratorRuntime.mark(function getEdgesBetweenGen(from, to, query) {
 			return regeneratorRuntime.wrap(function getEdgesBetweenGen$(_context10) {
 				while (1) {
@@ -588,6 +653,13 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			});
 		};
 
+		/**
+   * Retrieve nodes reached by edges that extend from a given node, as a generator
+   * @function getLinkedNodesGen
+   * @memberof graph
+   * @param node - the target node
+   * @param query - an object with a list of properties to be matched
+   */
 		var getLinkedNodesGen = regeneratorRuntime.mark(function getLinkedNodesGen(node, query) {
 			return regeneratorRuntime.wrap(function getLinkedNodesGen$(_context11) {
 				while (1) {
@@ -606,18 +678,25 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 		});
 
 		/**
-  * Retrieve nodes having edges that reach a given node
-  * @function getLinkingNodes
-  * @memberof graph
-  * @param node - the target node
-  * @param query - an object with a list of properties to be matched
-  */
+   * Retrieve nodes having edges that reach a given node
+   * @function getLinkingNodes
+   * @memberof graph
+   * @param node - the target node
+   * @param query - an object with a list of properties to be matched
+   */
 		var getLinkingNodes = function getLinkingNodes(node, query) {
 			return (0, _map2.default)(getEdgesTo(node, query), function (edge) {
 				return nodes[edge.from];
 			});
 		};
 
+		/**
+   * Retrieve nodes having edges that reach a given node
+   * @function getLinkingNodesGen
+   * @memberof graph
+   * @param node - the target node
+   * @param query - an object with a list of properties to be matched
+   */
 		var getLinkingNodesGen = regeneratorRuntime.mark(function getLinkingNodesGen(node, query) {
 			return regeneratorRuntime.wrap(function getLinkingNodesGen$(_context12) {
 				while (1) {
@@ -640,7 +719,9 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			edges: edges,
 			nodeCount: nodeCount,
 			edgeCount: edgeCount,
-			hasAnyEdge: !options.allowUndirected ? hasDirectEdge : hasAnyEdge,
+			hasAnyEdge: options.allowUndirected ? hasAnyEdge : hasDirectedEdge,
+			hasDirectedEdge: hasDirectedEdge,
+			hasUndirectedEdge: options.allowUndirected ? hasUndirectedEdge : undefined,
 			pack: pack,
 			mergeWith: mergeWith,
 			addNode: addNode,
@@ -649,22 +730,24 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			getEdge: getEdge,
 			removeNode: removeNode,
 			removeEdge: removeEdge,
-			inflateNodes: inflateNodes,
-			inflateNodesGen: inflateNodesGen,
-			inflateEdges: inflateEdges,
-			inflateEdgesGen: inflateEdgesGen,
 			link: link,
+
+			inflateNodes: inflateNodes,
+			inflateEdges: inflateEdges,
 			getNodes: getNodes,
-			getNodesGen: getNodesGen,
 			getEdgesFrom: getEdgesFrom,
-			getEdgesFromGen: getEdgesFromGen,
 			getEdgesTo: getEdgesTo,
-			getEdgesToGen: getEdgesToGen,
 			getEdgesBetween: getEdgesBetween,
-			getEdgesBetweenGen: getEdgesBetweenGen,
 			getLinkedNodes: getLinkedNodes,
-			getLinkedNodesGen: getLinkedNodesGen,
 			getLinkingNodes: getLinkingNodes,
+
+			inflateNodesGen: inflateNodesGen,
+			inflateEdgesGen: inflateEdgesGen,
+			getNodesGen: getNodesGen,
+			getEdgesFromGen: getEdgesFromGen,
+			getEdgesToGen: getEdgesToGen,
+			getEdgesBetweenGen: getEdgesBetweenGen,
+			getLinkedNodesGen: getLinkedNodesGen,
 			getLinkingNodesGen: getLinkingNodesGen
 		};
 	};

@@ -37,6 +37,5 @@ exports.default = {
 	getId: getId,
 	node: _node2.default,
 	edge: (0, _edge2.default)(getId),
-	//undirectedEdge: (from, to, payload, metadata) => edgeFactory(from, to, payload, metadata, false),
 	graph: (0, _graph2.default)(getId, _node2.default, _edge2.default)
 };

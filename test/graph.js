@@ -59,6 +59,35 @@ describe('Graph', function() {
 		assert.equal(retrieved.to, node2.id);
 	});
 
+	it('should detect a direct edge between two nodes', () => {
+		const dgraph = cz.graph();
+		const node1 = dgraph.addNode(cz.node());
+		const node2 = dgraph.addNode(cz.node());
+		const edge = dgraph.addEdge(cz.edge(node1, node2));
+		assert.equal(true, dgraph.hasAnyEdge(node1, node2));
+		assert.equal(true, dgraph.hasDirectedEdge(node1, node2));
+	});
+
+	it('should not detect a direct edge between two nodes in the wrong direction', () => {
+		const dgraph = cz.graph();
+		const node1 = dgraph.addNode(cz.node());
+		const node2 = dgraph.addNode(cz.node());
+		const edge = dgraph.addEdge(cz.edge(node1, node2));
+		assert.equal(false, dgraph.hasAnyEdge(node2, node1));
+		assert.equal(false, dgraph.hasDirectedEdge(node2, node1));
+	});
+
+	it('should detect an undirected edge between two nodes in any direction', () => {
+		const ugraph = cz.graph(undefined, { allowUndirected: true });
+		const node1 = ugraph.addNode(cz.node());
+		const node2 = ugraph.addNode(cz.node());
+		const edge = ugraph.addEdge(cz.edge(node1, node2, {}, {}, false));
+		assert.equal(true, ugraph.hasAnyEdge(node1, node2));
+		assert.equal(true, ugraph.hasAnyEdge(node2, node1));
+		assert.equal(true, ugraph.hasUndirectedEdge(node1, node2));
+		assert.equal(true, ugraph.hasUndirectedEdge(node2, node1));
+	});
+
 	it('should retrieve the specified nodes', () => {
 		const graph = cz.graph();
 		const node1 = graph.addNode(cz.node({ user: 'x', age: 20, active: true }));
