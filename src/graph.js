@@ -6,7 +6,7 @@ import values from "lodash/values";
 import filter from "lodash/filter";
 
 import sequenceFactory from "./sequence";
-import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "./generator";
+import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "./generator-utils";
 
 /**
  * Create a graph
@@ -171,6 +171,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	const getNode = (node) => nodes[getId(node)];
 	const getEdge = (edge) => edges[getId(edge)];
+	const isDirected = (edge) => edge.directed;
 	const hasDirectedEdge = (from, to) => !!getNode(from).outbound[getId(to)];
 
 	const hasUndirectedEdge = (from, to) => {
@@ -186,18 +187,27 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		return hasUndirectedEdge(from, to);
 	};
 
-	const inflateNodes = (nodeIds) => map(nodeIds, (id) => nodes[id]);
-	const inflateEdges = (edgeIds) => map(edgeIds, (id) => edges[id]);
+	const inflateNodes = (nodeIds) => map(nodeIds, getNode);
+	const inflateEdges = (edgeIds) => map(edgeIds, getEdge);
 
 	const inflateNodesGen = function*(nodeIdsGen) {
-		yield* yieldMap(nodeIdsGen, (id) => nodes[id]);
+		yield* yieldMap(nodeIdsGen, getNode);
 	};
 
 	const inflateEdgesGen = function*(edgeIdsGen) {
-		yield* yieldMap(edgeIdsGen, (id) => edges[id]);
+		yield* yieldMap(edgeIdsGen, getEdge);
 	};
 
-	const link = (from, to, payload, metadata, directed) => addEdge(edgeFactory(getId(from), getId(to), payload, metadata, directed || !options.allowUndirected));
+	const link = (from, to, payload, metadata, directed) => addEdge(
+		edgeFactory(
+			getId(from), 
+			getId(to), 
+			payload, 
+			metadata, 
+			directed || !options.allowUndirected
+		)
+	);
+
 	const getNodes = (query) => query ? filter(nodes, (entry) => matches(query)(entry.payload)) : nodes;
 
 	const getNodesByQueryGen = function*(query) {
@@ -220,54 +230,68 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		yield* yieldUnion(map(groups, (group) => yieldAll(group)));
 	};
 
-	const getEdges = (edgeIds, query) => {
-		const edgeMap = map(edgeIds, (id) => edges[id]);
-		return query ? filter(edgeMap, (entry) => matches(query)(entry.payload)) : edgeMap;
+	const getEdges = (directed, edgeIds, query) => {
+		const edgesList = map(edgeIds, getEdge);
+		const anyDirectedness = directed === undefined;
+		if (!query && anyDirectedness) {
+			return edgesList;
+		} else {
+			const matchesQuery = matches(query);
+			if (anyDirectedness) {
+				const matchesDirectedness = (edge) => directed === isDirected(edge);
+				return filter(edgesList, (entry) => matchesQuery(entry.payload));
+			}
+
+			return filter(edgesList, (entry) => matchesDirectedness(entry) && matchesQuery(entry.payload));
+		}
+
+		return edgesList;
 	};
 
-	const getEdgesbyQueryGen = function*(generator, query) {
-		const matchQuery = matches(query);
-		const isMatch = (item) => matchQuery(item.payload);
-		yield* yieldMatching(generator, isMatch);
-	};
-
-	const getEdgesGen = function*(edgeIdsGenerator, query) {
-		const edgesGenerator = yieldMap(edgeIdsGenerator, (id) => edges[id]);
-		if (!query) {
+	const getEdgesGen = function*(directed, edgeIdsGenerator, query) {
+		const edgesGenerator = yieldMap(edgeIdsGenerator, getEdge);
+		const anyDirectedness = directed === undefined;
+		if (!query && anyDirectedness) {
 			yield* edgesGenerator;
 		} else {
-			yield* getEdgesbyQueryGen(edgesGenerator, query);
-		}		
+			const matchesQuery = matches(query);
+			if (anyDirectedness) {
+				yield* yieldMatching(edgesGenerator, (edge) => matchesQuery(edge.payload));
+			} else {
+				const matchesDirectedness = (edge) => directed === isDirected(edge);
+				yield* yieldMatching(edgesGenerator, (edge) => matchesDirectedness(edge) && matchesQuery(edge.payload));
+			}
+		}
 	};
 
-	const getEdgesFrom = (node, query) => getEdges(squashEdges(node.outbound), query);
+	const getEdgesFrom = (directed, node, query) => getEdges(directed, squashEdges(node.outbound), query);
 
-	const getEdgesFromGen = function*(node, query) {
-		yield* getEdgesGen(squashEdgesGen(node.outbound), query);
+	const getEdgesFromGen = function*(directed, node, query) {
+		yield* getEdgesGen(directed, squashEdgesGen(node.outbound), query);
 	};
 
-	const getEdgesTo = (node, query) => getEdges(squashEdges(node.inbound), query);
+	const getEdgesTo = (directed, node, query) => getEdges(directed, squashEdges(node.inbound), query);
 
-	const getEdgesToGen = function*(node, query) {
-		yield* getEdgesGen(squashEdgesGen(node.inbound), query);
+	const getEdgesToGen = function*(directed, node, query) {
+		yield* getEdgesGen(directed, squashEdgesGen(node.inbound), query);
 	};
 
-	const getEdgesBetween = (from, to, query) => getEdges(getNode(from).outbound[getId(to)], query)
+	const getEdgesBetween = (directed, from, to, query) => getEdges(directed, getNode(from).outbound[getId(to)], query)
 
-	const getEdgesBetweenGen = function*(from, to, query) {
-		yield* getEdgesGen(yieldAll(getNode(from).outbound[getId(to)]), query);
+	const getEdgesBetweenGen = function*(directed, from, to, query) {
+		yield* getEdgesGen(directed, yieldAll(getNode(from).outbound[getId(to)]), query);
 	};
 
-	const getLinkedNodes = (node, query) => map(getEdgesFrom(node, query), (edge) => nodes[edge.to]);
+	const getLinkedNodes = (directed, node, query) => map(getEdgesFrom(directed, node, query), (edge) => nodes[edge.to]);
 
-	const getLinkedNodesGen = function*(node, query) {
-		yield* yieldMap(getEdgesFromGen(node, query), (edge) => nodes[edge.to]);
+	const getLinkedNodesGen = function*(directed, node, query) {
+		yield* yieldMap(getEdgesFromGen(directed, node, query), (edge) => nodes[edge.to]);
 	};
 
-	const getLinkingNodes = (node, query) => map(getEdgesTo(node, query), (edge) => nodes[edge.from]);
+	const getLinkingNodes = (directed, node, query) => map(getEdgesTo(directed, node, query), (edge) => nodes[edge.from]);
 
-	const getLinkingNodesGen = function*(node, query) {
-		yield* yieldMap(getEdgesToGen(node, query), (edge) => nodes[edge.from]);	
+	const getLinkingNodesGen = function*(directed, node, query) {
+		yield* yieldMap(getEdgesToGen(directed, node, query), (edge) => nodes[edge.from]);	
 	};
 
  	return {
@@ -305,6 +329,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @instance
 		 */
 		hasUndirectedEdge: options.allowUndirected ? hasUndirectedEdge : undefined,
+ 	
  		pack,
  		mergeWith,
 

@@ -8,10 +8,6 @@ var _get = require("lodash/get");
 
 var _get2 = _interopRequireDefault(_get);
 
-var _constants = require("./constants");
-
-var _constants2 = _interopRequireDefault(_constants);
-
 var _graph = require("./graph");
 
 var _graph2 = _interopRequireDefault(_graph);

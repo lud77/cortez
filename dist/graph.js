@@ -32,7 +32,7 @@ var _sequence = require("./sequence");
 
 var _sequence2 = _interopRequireDefault(_sequence);
 
-var _generator = require("./generator");
+var _generatorUtils = require("./generator-utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -210,6 +210,9 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 		var getEdge = function getEdge(edge) {
 			return edges[getId(edge)];
 		};
+		var isDirected = function isDirected(edge) {
+			return edge.directed;
+		};
 		var hasDirectedEdge = function hasDirectedEdge(from, to) {
 			return !!getNode(from).outbound[getId(to)];
 		};
@@ -228,14 +231,10 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 		};
 
 		var inflateNodes = function inflateNodes(nodeIds) {
-			return (0, _map2.default)(nodeIds, function (id) {
-				return nodes[id];
-			});
+			return (0, _map2.default)(nodeIds, getNode);
 		};
 		var inflateEdges = function inflateEdges(edgeIds) {
-			return (0, _map2.default)(edgeIds, function (id) {
-				return edges[id];
-			});
+			return (0, _map2.default)(edgeIds, getEdge);
 		};
 
 		var inflateNodesGen = regeneratorRuntime.mark(function inflateNodesGen(nodeIdsGen) {
@@ -243,9 +242,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 				while (1) {
 					switch (_context.prev = _context.next) {
 						case 0:
-							return _context.delegateYield((0, _generator.yieldMap)(nodeIdsGen, function (id) {
-								return nodes[id];
-							}), "t0", 1);
+							return _context.delegateYield((0, _generatorUtils.yieldMap)(nodeIdsGen, getNode), "t0", 1);
 
 						case 1:
 						case "end":
@@ -260,9 +257,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 				while (1) {
 					switch (_context2.prev = _context2.next) {
 						case 0:
-							return _context2.delegateYield((0, _generator.yieldMap)(edgeIdsGen, function (id) {
-								return edges[id];
-							}), "t0", 1);
+							return _context2.delegateYield((0, _generatorUtils.yieldMap)(edgeIdsGen, getEdge), "t0", 1);
 
 						case 1:
 						case "end":
@@ -275,6 +270,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 		var link = function link(from, to, payload, metadata, directed) {
 			return addEdge(edgeFactory(getId(from), getId(to), payload, metadata, directed || !options.allowUndirected));
 		};
+
 		var getNodes = function getNodes(query) {
 			return query ? (0, _filter2.default)(nodes, function (entry) {
 				return (0, _matches2.default)(query)(entry.payload);
@@ -293,7 +289,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 								return matchQuery(item.payload);
 							};
 
-							return _context3.delegateYield((0, _generator.yieldMatching)((0, _generator.yieldAll)(nodes), isMatch), "t0", 3);
+							return _context3.delegateYield((0, _generatorUtils.yieldMatching)((0, _generatorUtils.yieldAll)(nodes), isMatch), "t0", 3);
 
 						case 3:
 						case "end":
@@ -313,7 +309,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 								break;
 							}
 
-							return _context4.delegateYield((0, _generator.yieldAll)(nodes), "t0", 2);
+							return _context4.delegateYield((0, _generatorUtils.yieldAll)(nodes), "t0", 2);
 
 						case 2:
 							_context4.next = 5;
@@ -339,8 +335,8 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 				while (1) {
 					switch (_context5.prev = _context5.next) {
 						case 0:
-							return _context5.delegateYield((0, _generator.yieldUnion)((0, _map2.default)(groups, function (group) {
-								return (0, _generator.yieldAll)(group);
+							return _context5.delegateYield((0, _generatorUtils.yieldUnion)((0, _map2.default)(groups, function (group) {
+								return (0, _generatorUtils.yieldAll)(group);
 							})), "t0", 1);
 
 						case 1:
@@ -351,167 +347,182 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			}, squashEdgesGen, this);
 		});
 
-		var getEdges = function getEdges(edgeIds, query) {
-			var edgeMap = (0, _map2.default)(edgeIds, function (id) {
-				return edges[id];
-			});
-			return query ? (0, _filter2.default)(edgeMap, function (entry) {
-				return (0, _matches2.default)(query)(entry.payload);
-			}) : edgeMap;
+		var getEdges = function getEdges(directed, edgeIds, query) {
+			var edgesList = (0, _map2.default)(edgeIds, getEdge);
+			var anyDirectedness = directed === undefined;
+			if (!query && anyDirectedness) {
+				return edgesList;
+			} else {
+				var matchesQuery = (0, _matches2.default)(query);
+				if (anyDirectedness) {
+					var _matchesDirectedness = function _matchesDirectedness(edge) {
+						return directed === isDirected(edge);
+					};
+					return (0, _filter2.default)(edgesList, function (entry) {
+						return matchesQuery(entry.payload);
+					});
+				}
+
+				return (0, _filter2.default)(edgesList, function (entry) {
+					return matchesDirectedness(entry) && matchesQuery(entry.payload);
+				});
+			}
+
+			return edgesList;
 		};
 
-		var getEdgesbyQueryGen = regeneratorRuntime.mark(function getEdgesbyQueryGen(generator, query) {
-			var matchQuery, isMatch;
-			return regeneratorRuntime.wrap(function getEdgesbyQueryGen$(_context6) {
+		var getEdgesGen = regeneratorRuntime.mark(function getEdgesGen(directed, edgeIdsGenerator, query) {
+			var edgesGenerator, anyDirectedness, matchesQuery, _matchesDirectedness2;
+
+			return regeneratorRuntime.wrap(function getEdgesGen$(_context6) {
 				while (1) {
 					switch (_context6.prev = _context6.next) {
 						case 0:
-							matchQuery = (0, _matches2.default)(query);
+							edgesGenerator = (0, _generatorUtils.yieldMap)(edgeIdsGenerator, getEdge);
+							anyDirectedness = directed === undefined;
 
-							isMatch = function isMatch(item) {
-								return matchQuery(item.payload);
-							};
-
-							return _context6.delegateYield((0, _generator.yieldMatching)(generator, isMatch), "t0", 3);
-
-						case 3:
-						case "end":
-							return _context6.stop();
-					}
-				}
-			}, getEdgesbyQueryGen, this);
-		});
-
-		var getEdgesGen = regeneratorRuntime.mark(function getEdgesGen(edgeIdsGenerator, query) {
-			var edgesGenerator;
-			return regeneratorRuntime.wrap(function getEdgesGen$(_context7) {
-				while (1) {
-					switch (_context7.prev = _context7.next) {
-						case 0:
-							edgesGenerator = (0, _generator.yieldMap)(edgeIdsGenerator, function (id) {
-								return edges[id];
-							});
-
-							if (query) {
-								_context7.next = 5;
+							if (!(!query && anyDirectedness)) {
+								_context6.next = 6;
 								break;
 							}
 
-							return _context7.delegateYield(edgesGenerator, "t0", 3);
+							return _context6.delegateYield(edgesGenerator, "t0", 4);
 
-						case 3:
-							_context7.next = 6;
+						case 4:
+							_context6.next = 13;
 							break;
 
-						case 5:
-							return _context7.delegateYield(getEdgesbyQueryGen(edgesGenerator, query), "t1", 6);
-
 						case 6:
+							matchesQuery = (0, _matches2.default)(query);
+
+							if (!anyDirectedness) {
+								_context6.next = 11;
+								break;
+							}
+
+							return _context6.delegateYield((0, _generatorUtils.yieldMatching)(edgesGenerator, function (edge) {
+								return matchesQuery(edge.payload);
+							}), "t1", 9);
+
+						case 9:
+							_context6.next = 13;
+							break;
+
+						case 11:
+							_matchesDirectedness2 = function _matchesDirectedness2(edge) {
+								return directed === isDirected(edge);
+							};
+
+							return _context6.delegateYield((0, _generatorUtils.yieldMatching)(edgesGenerator, function (edge) {
+								return _matchesDirectedness2(edge) && matchesQuery(edge.payload);
+							}), "t2", 13);
+
+						case 13:
 						case "end":
-							return _context7.stop();
+							return _context6.stop();
 					}
 				}
 			}, getEdgesGen, this);
 		});
 
-		var getEdgesFrom = function getEdgesFrom(node, query) {
-			return getEdges(squashEdges(node.outbound), query);
+		var getEdgesFrom = function getEdgesFrom(directed, node, query) {
+			return getEdges(directed, squashEdges(node.outbound), query);
 		};
 
-		var getEdgesFromGen = regeneratorRuntime.mark(function getEdgesFromGen(node, query) {
-			return regeneratorRuntime.wrap(function getEdgesFromGen$(_context8) {
+		var getEdgesFromGen = regeneratorRuntime.mark(function getEdgesFromGen(directed, node, query) {
+			return regeneratorRuntime.wrap(function getEdgesFromGen$(_context7) {
+				while (1) {
+					switch (_context7.prev = _context7.next) {
+						case 0:
+							return _context7.delegateYield(getEdgesGen(directed, squashEdgesGen(node.outbound), query), "t0", 1);
+
+						case 1:
+						case "end":
+							return _context7.stop();
+					}
+				}
+			}, getEdgesFromGen, this);
+		});
+
+		var getEdgesTo = function getEdgesTo(directed, node, query) {
+			return getEdges(directed, squashEdges(node.inbound), query);
+		};
+
+		var getEdgesToGen = regeneratorRuntime.mark(function getEdgesToGen(directed, node, query) {
+			return regeneratorRuntime.wrap(function getEdgesToGen$(_context8) {
 				while (1) {
 					switch (_context8.prev = _context8.next) {
 						case 0:
-							return _context8.delegateYield(getEdgesGen(squashEdgesGen(node.outbound), query), "t0", 1);
+							return _context8.delegateYield(getEdgesGen(directed, squashEdgesGen(node.inbound), query), "t0", 1);
 
 						case 1:
 						case "end":
 							return _context8.stop();
 					}
 				}
-			}, getEdgesFromGen, this);
+			}, getEdgesToGen, this);
 		});
 
-		var getEdgesTo = function getEdgesTo(node, query) {
-			return getEdges(squashEdges(node.inbound), query);
+		var getEdgesBetween = function getEdgesBetween(directed, from, to, query) {
+			return getEdges(directed, getNode(from).outbound[getId(to)], query);
 		};
 
-		var getEdgesToGen = regeneratorRuntime.mark(function getEdgesToGen(node, query) {
-			return regeneratorRuntime.wrap(function getEdgesToGen$(_context9) {
+		var getEdgesBetweenGen = regeneratorRuntime.mark(function getEdgesBetweenGen(directed, from, to, query) {
+			return regeneratorRuntime.wrap(function getEdgesBetweenGen$(_context9) {
 				while (1) {
 					switch (_context9.prev = _context9.next) {
 						case 0:
-							return _context9.delegateYield(getEdgesGen(squashEdgesGen(node.inbound), query), "t0", 1);
+							return _context9.delegateYield(getEdgesGen(directed, (0, _generatorUtils.yieldAll)(getNode(from).outbound[getId(to)]), query), "t0", 1);
 
 						case 1:
 						case "end":
 							return _context9.stop();
 					}
 				}
-			}, getEdgesToGen, this);
+			}, getEdgesBetweenGen, this);
 		});
 
-		var getEdgesBetween = function getEdgesBetween(from, to, query) {
-			return getEdges(getNode(from).outbound[getId(to)], query);
+		var getLinkedNodes = function getLinkedNodes(directed, node, query) {
+			return (0, _map2.default)(getEdgesFrom(directed, node, query), function (edge) {
+				return nodes[edge.to];
+			});
 		};
 
-		var getEdgesBetweenGen = regeneratorRuntime.mark(function getEdgesBetweenGen(from, to, query) {
-			return regeneratorRuntime.wrap(function getEdgesBetweenGen$(_context10) {
+		var getLinkedNodesGen = regeneratorRuntime.mark(function getLinkedNodesGen(directed, node, query) {
+			return regeneratorRuntime.wrap(function getLinkedNodesGen$(_context10) {
 				while (1) {
 					switch (_context10.prev = _context10.next) {
 						case 0:
-							return _context10.delegateYield(getEdgesGen((0, _generator.yieldAll)(getNode(from).outbound[getId(to)]), query), "t0", 1);
+							return _context10.delegateYield((0, _generatorUtils.yieldMap)(getEdgesFromGen(directed, node, query), function (edge) {
+								return nodes[edge.to];
+							}), "t0", 1);
 
 						case 1:
 						case "end":
 							return _context10.stop();
 					}
 				}
-			}, getEdgesBetweenGen, this);
-		});
-
-		var getLinkedNodes = function getLinkedNodes(node, query) {
-			return (0, _map2.default)(getEdgesFrom(node, query), function (edge) {
-				return nodes[edge.to];
-			});
-		};
-
-		var getLinkedNodesGen = regeneratorRuntime.mark(function getLinkedNodesGen(node, query) {
-			return regeneratorRuntime.wrap(function getLinkedNodesGen$(_context11) {
-				while (1) {
-					switch (_context11.prev = _context11.next) {
-						case 0:
-							return _context11.delegateYield((0, _generator.yieldMap)(getEdgesFromGen(node, query), function (edge) {
-								return nodes[edge.to];
-							}), "t0", 1);
-
-						case 1:
-						case "end":
-							return _context11.stop();
-					}
-				}
 			}, getLinkedNodesGen, this);
 		});
 
-		var getLinkingNodes = function getLinkingNodes(node, query) {
-			return (0, _map2.default)(getEdgesTo(node, query), function (edge) {
+		var getLinkingNodes = function getLinkingNodes(directed, node, query) {
+			return (0, _map2.default)(getEdgesTo(directed, node, query), function (edge) {
 				return nodes[edge.from];
 			});
 		};
 
-		var getLinkingNodesGen = regeneratorRuntime.mark(function getLinkingNodesGen(node, query) {
-			return regeneratorRuntime.wrap(function getLinkingNodesGen$(_context12) {
+		var getLinkingNodesGen = regeneratorRuntime.mark(function getLinkingNodesGen(directed, node, query) {
+			return regeneratorRuntime.wrap(function getLinkingNodesGen$(_context11) {
 				while (1) {
-					switch (_context12.prev = _context12.next) {
+					switch (_context11.prev = _context11.next) {
 						case 0:
-							return _context12.delegateYield((0, _generator.yieldMap)(getEdgesToGen(node, query), function (edge) {
+							return _context11.delegateYield((0, _generatorUtils.yieldMap)(getEdgesToGen(directed, node, query), function (edge) {
 								return nodes[edge.from];
 							}), "t0", 1);
 
 						case 1:
 						case "end":
-							return _context12.stop();
+							return _context11.stop();
 					}
 				}
 			}, getLinkingNodesGen, this);
@@ -552,6 +563,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @instance
     */
 			hasUndirectedEdge: options.allowUndirected ? hasUndirectedEdge : undefined,
+
 			pack: pack,
 			mergeWith: mergeWith,
 

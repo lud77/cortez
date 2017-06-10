@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 
-import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "../dist/generator";
+import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "../dist/generator-utils";
 
 function drainAndCount(gen) {
 	let count = 0;
@@ -13,7 +13,7 @@ function drainAndCount(gen) {
 	return count;
 }
 
-describe('Generator', function() {
+describe('Generator Utils', function() {
     it('should yield all the elements of an array', () => {
 		const gen = yieldAll([1, 2, 3]);
 		const numItems = drainAndCount(gen);
