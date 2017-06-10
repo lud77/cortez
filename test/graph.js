@@ -151,7 +151,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'colleague' }));
 		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
-		const retrieved = graph.getEdgesFrom(undefined, node1, { type: 'friend' });
+		const retrieved = graph.getDirectedEdgesFrom(node1, { type: 'friend' });
 		assert.equal(retrieved.length, 1);
 		assert.equal(edge1.id, retrieved[0].id);
 	});
@@ -163,7 +163,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'colleague' }));
 		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
-		const retrieved = graph.getEdgesBetween(undefined, node1, node2, { type: 'friend' });
+		const retrieved = graph.getDirectedEdgesBetween(node1, node2, { type: 'friend' });
 		assert.equal(retrieved.length, 1);
 		assert.equal(edge1.id, retrieved[0].id);
 	});
@@ -176,7 +176,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'colleague' }));
 		const edge3 = graph.addEdge(cz.edge(node1, node3, { type: 'friend' }));
-		const nodes = graph.getLinkedNodes(undefined, node1, { type: 'friend' });
+		const nodes = graph.getLinkedNodes(node1, { type: 'friend' });
 		assert.equal(nodes.length, 2);
 		assert.equal(nodes[0].payload.user, 'y');
 		assert.equal(nodes[1].payload.user, 'z');
@@ -190,7 +190,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node2, node1, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node2, node1, { type: 'colleague' }));
 		const edge3 = graph.addEdge(cz.edge(node3, node1, { type: 'friend' }));
-		const nodes = graph.getLinkingNodes(undefined, node1, { type: 'friend' });
+		const nodes = graph.getLinkingNodes(node1, { type: 'friend' });
 		assert.equal(nodes.length, 2);
 		assert.equal(nodes[0].payload.user, 'y');
 		assert.equal(nodes[1].payload.user, 'z');
@@ -249,7 +249,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'colleague' }));
 		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
-		const gen = graph.getEdgesFromGen(undefined, node1);
+		const gen = graph.getDirectedEdgesFromGen(node1);
 		assert.equal(edge1.id, gen.next().value.id);
 		assert.equal(edge2.id, gen.next().value.id);
 		assert.equal(edge3.id, gen.next().value.id);
@@ -263,7 +263,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
-		const gen = graph.getEdgesFromGen(undefined, node1, { type: 'friend' });
+		const gen = graph.getDirectedEdgesFromGen(node1, { type: 'friend' });
 		assert.equal(edge1.id, gen.next().value.id);
 		assert.equal(edge2.id, gen.next().value.id);
 		assert.equal(true, gen.next().done);
@@ -276,7 +276,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
-		const gen = graph.getEdgesBetweenGen(undefined, node1, node2, { type: 'friend' });
+		const gen = graph.getDirectedEdgesBetweenGen(node1, node2, { type: 'friend' });
 		assert.equal(edge1.id, gen.next().value.id);
 		assert.equal(edge2.id, gen.next().value.id);
 		assert.equal(true, gen.next().done);
@@ -289,7 +289,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge3 = graph.addEdge(cz.edge(node1, node2, { type: 'acquaintance' }));
-		const gen = graph.getEdgesToGen(undefined, node2, { type: 'friend' });
+		const gen = graph.getDirectedEdgesToGen(node2, { type: 'friend' });
 		assert.equal(edge1.id, gen.next().value.id);
 		assert.equal(edge2.id, gen.next().value.id);
 		assert.equal(true, gen.next().done);
@@ -303,7 +303,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node1, node2, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node1, node2, { type: 'colleague' }));
 		const edge3 = graph.addEdge(cz.edge(node1, node3, { type: 'friend' }));
-		const gen = graph.getLinkedNodesGen(undefined, node1, { type: 'friend' });
+		const gen = graph.getLinkedNodesGen(node1, { type: 'friend' });
 		assert.equal(gen.next().value.payload.user, 'y');
 		assert.equal(gen.next().value.payload.user, 'z');
 		assert.equal(true, gen.next().done);
@@ -317,7 +317,7 @@ describe('Graph', function() {
 		const edge1 = graph.addEdge(cz.edge(node2, node1, { type: 'friend' }));
 		const edge2 = graph.addEdge(cz.edge(node2, node1, { type: 'colleague' }));
 		const edge3 = graph.addEdge(cz.edge(node3, node1, { type: 'friend' }));
-		const gen = graph.getLinkingNodesGen(undefined, node1, { type: 'friend' });
+		const gen = graph.getLinkingNodesGen(node1, { type: 'friend' });
 		assert.equal(gen.next().value.payload.user, 'y');
 		assert.equal(gen.next().value.payload.user, 'z');
 		assert.equal(true, gen.next().done);
