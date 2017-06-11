@@ -38,8 +38,7 @@ Install the package and open docs/index.html in the browser to review the method
 
 ## Roadmap
 
-- Extend support for undirected graphs
-- Refine support for auto-edges
+- Refine support for self-edges
 - Complete and expose fragment merging functionality
 - Add a suite of basic algorithms such as graph search and coverage
 - Provide better usage documentation and hints/best practices
