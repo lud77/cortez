@@ -1,12 +1,11 @@
 import map from "lodash/map";
-import find from "lodash/find";
 import matches from "lodash/matches";
 import flatten from "lodash/flatten";
 import values from "lodash/values";
 import filter from "lodash/filter";
 
 import sequenceFactory from "./sequence";
-import { yieldAll, yieldMatching, yieldUnion, yieldMap, drainAndLog } from "./generator-utils";
+import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "./generator-utils";
 
 /**
  * Create a graph
@@ -15,18 +14,18 @@ import { yieldAll, yieldMatching, yieldUnion, yieldMap, drainAndLog } from "./ge
  * @param options - allowUndirected, onAddNode, onAddEdge, onRemoveNode, onRemoveEdge
  */
 export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => {
- 	let { nodes, edges, nodeCount, edgeCount } = Object.assign({}, {
+	let { nodes, edges, nodeCount, edgeCount } = Object.assign({}, {
 		nodeCount: 0,
 		edgeCount: 0,
 		nodes: {},
 		edges: {}
 	}, (typeof fragment === "string") ? JSON.parse(fragment) : fragment);
 
- 	const nodeSeq = sequenceFactory(nodeCount);
- 	const edgeSeq = sequenceFactory(edgeCount);
+	const nodeSeq = sequenceFactory(nodeCount);
+	const edgeSeq = sequenceFactory(edgeCount);
 
 	const pack = () => {
-		const newGraph = empty();
+		const newGraph = {};
 		const mapping = {};
 
 		for (let n in nodes) {
@@ -179,8 +178,8 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		if (hasUndirectedEdgesFrom !== undefined && hasUndirectedEdgesFrom > 0) return true;
 
 		const hasUndirectedEdgesTo = getNode(to).hasUndirectedEdges[getId(from)];
-		return hasUndirectedEdgesFrom !== undefined && hasUndirectedEdgesFrom > 0;
-	}
+		return hasUndirectedEdgesTo !== undefined && hasUndirectedEdgesFrom > 0;
+	};
 
 	const hasAnyEdge = (from, to) => {
 		if (hasDirectedEdge(from, to)) return true;
@@ -244,8 +243,6 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 			const matchesDirectedness = (edge) => directed === isDirected(edge);
 			return filter(edgesList, (entry) => matchesDirectedness(entry) && matchesQuery(entry.payload));
 		}
-
-		return edgesList;
 	};
 
 	const getEdgesGen = (directed) => function*(edgeIdsGenerator, query) {
@@ -281,7 +278,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		yield* getEdgesGen(directed)(squashEdgesGen(node.inbound), query);
 	};
 
-	const getEdgesBetween = (directed) => (from, to, query) => getEdges(directed)(getNode(from).outbound[getId(to)], query)
+	const getEdgesBetween = (directed) => (from, to, query) => getEdges(directed)(getNode(from).outbound[getId(to)], query);
 
 	const getEdgesBetweenGen = (directed) => function*(from, to, query) {
 		yield* getEdgesGen(directed)(yieldAll(getNode(from).outbound[getId(to)]), query);
@@ -299,11 +296,11 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		yield* yieldMap(getEdgesToGen(directed)(node, query), (edge) => nodes[edge.from]);	
 	};
 
- 	return {
- 		nodes,
- 		edges,
- 		nodeCount,
- 		edgeCount,
+	return {
+		nodes,
+		edges,
+		nodeCount,
+		edgeCount,
 
 		/**
 		 * Checks if a pair of nodes has at least one edge connecting them
@@ -334,9 +331,9 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @instance
 		 */
 		hasUndirectedEdge: options.allowUndirected ? hasUndirectedEdge : undefined,
- 	
- 		pack,
- 		mergeWith,
+	
+		pack,
+		mergeWith,
 
 		/**
 		 * Add a node to the graph
@@ -346,7 +343,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @fires options.onAddNode
 		 * @instance
 		 */
- 		addNode,
+		addNode,
 
 		/**
 		 * Add an edge to the graph
@@ -365,7 +362,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @param node - a node object or the id of a node
 		 * @instance
 		 */
-	 	getNode,
+		getNode,
 
 		/**
 		 * Retrieve an edge given an edge object or its id
@@ -384,7 +381,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @fires options.onRemoveNode
 		 * @instance
 		 */
- 		removeNode,
+		removeNode,
 
 		/**
 		 * Remove an edge from a graph
@@ -394,7 +391,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @fires options.onRemoveEdge
 		 * @instance
 		 */
- 		removeEdge,
+		removeEdge,
 
 		/**
 		 * Shortcut method to create an edge between two nodes
@@ -425,7 +422,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @param edgeIds - an array of ids of edges to be retrieved
 		 * @instance
 		 */
-	 	inflateEdges,
+		inflateEdges,
 
 		/**
 		 * Retrieve nodes matching a query
@@ -434,7 +431,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @param query - an object with a list of properties to be matched
 		 * @instance
 		 */
-	 	getNodes,
+		getNodes,
 		
 		/**
 		 * Retrieves a list of nodes as a generator
@@ -443,7 +440,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @param nodeIdsGen - a generator producing the ids of nodes to be retrieved
 		 * @instance
 		 */
-	 	inflateNodesGen,
+		inflateNodesGen,
 
 		/**
 		 * Retrieves a list of edges as a generator
@@ -461,7 +458,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @param query - an object with a list of properties to be matched
 		 * @instance
 		 */
-	 	getNodesGen,
+		getNodesGen,
 
 		/**
 		 * Retrieve edges matching a query from a list of candidates
@@ -522,7 +519,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @param query - an object with a list of properties to be matched
 		 * @instance
 		 */
-	 	getEdgesFromGen: getEdgesFromGen(),
+		getEdgesFromGen: getEdgesFromGen(),
 
 		/**
 		 * Retrieve edges reaching a given node, as a generator
@@ -604,7 +601,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @param query - an object with a list of properties to be matched
 		 * @instance
 		 */
-	 	getLinkingNodes: getLinkingNodes(true),
+		getLinkingNodes: getLinkingNodes(true),
 
 		/**
 		 * Retrieve directed edges matching a query from a list of candidates, as a generator
@@ -624,7 +621,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @param query - an object with a list of properties to be matched
 		 * @instance
 		 */
-	 	getDirectedEdgesFromGen: getEdgesFromGen(true),
+		getDirectedEdgesFromGen: getEdgesFromGen(true),
 
 		/**
 		 * Retrieve directed edges reaching a given node, as a generator
@@ -726,7 +723,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @param query - an object with a list of properties to be matched
 		 * @instance
 		 */
-	 	getUndirectedEdgesForGen: getEdgesFromGen(false),
+		getUndirectedEdgesForGen: getEdgesFromGen(false),
 
 		/**
 		 * Retrieve undirected edges extending from a given node to another given node
@@ -748,5 +745,5 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @instance
 		 */
 		getConnectedNodesGen: getLinkedNodesGen(false),
- 	};
+	};
 };

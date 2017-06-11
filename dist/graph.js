@@ -8,10 +8,6 @@ var _map = require("lodash/map");
 
 var _map2 = _interopRequireDefault(_map);
 
-var _find = require("lodash/find");
-
-var _find2 = _interopRequireDefault(_find);
-
 var _matches = require("lodash/matches");
 
 var _matches2 = _interopRequireDefault(_matches);
@@ -61,7 +57,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 		var edgeSeq = (0, _sequence2.default)(edgeCount);
 
 		var pack = function pack() {
-			var newGraph = empty();
+			var newGraph = {};
 			var mapping = {};
 
 			for (var n in nodes) {
@@ -222,7 +218,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			if (hasUndirectedEdgesFrom !== undefined && hasUndirectedEdgesFrom > 0) return true;
 
 			var hasUndirectedEdgesTo = getNode(to).hasUndirectedEdges[getId(from)];
-			return hasUndirectedEdgesFrom !== undefined && hasUndirectedEdgesFrom > 0;
+			return hasUndirectedEdgesTo !== undefined && hasUndirectedEdgesFrom > 0;
 		};
 
 		var hasAnyEdge = function hasAnyEdge(from, to) {

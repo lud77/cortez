@@ -4,7 +4,7 @@ import graph from "./graph";
 import node from "./node";
 import edge from "./edge";
 
-const getId = (element) => get(element, 'id', element);
+const getId = (element) => get(element, "id", element);
 
 /**
  * Cortez object

@@ -33,11 +33,14 @@ const yieldMap = function*(generator, map) {
 };
 
 const drainAndLog = (gen) => {
+	let res = [];
 	while (true) {
 		const item = gen.next();
 		if (item.done) break;
-		console.log(item);
+		res.push(item);
 	}
+
+	return res;
 };
 
 const drainAndCount = (gen) => {
