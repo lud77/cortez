@@ -1,6 +1,6 @@
 {
   "name": "cortez",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Graph data structure",
   "main": "index.js",
   "scripts": {
