@@ -544,7 +544,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve directed edges matching a query from a list of candidates
-		 * @function getEdges
+		 * @function getDirectedEdges
 		 * @memberof graph
 		 * @param edgeIds - a list of candidate ids of edges
 		 * @param query - an object with a list of properties to be matched
@@ -554,7 +554,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve directed edges extending from a given node
-		 * @function getEdgesFrom
+		 * @function getDirectedEdgesFrom
 		 * @memberof graph
 		 * @param node - the source node
 		 * @param query - an object with a list of properties to be matched
@@ -564,7 +564,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve directed edges reaching a given node
-		 * @function getEdgesTo
+		 * @function getDirectedEdgesTo
 		 * @memberof graph
 		 * @param node - the target node
 		 * @param query - an object with a list of properties to be matched
@@ -574,7 +574,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve directed edges extending from a given node to another given node
-		 * @function getEdgesBetween
+		 * @function getDirectedEdgesBetween
 		 * @memberof graph
 		 * @param node - the source node
 		 * @param node - the target node
@@ -605,7 +605,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve directed edges matching a query from a list of candidates, as a generator
-		 * @function getEdgesGen
+		 * @function getDirectedEdgesGen
 		 * @memberof graph
 		 * @param edgeIdsGenerator - a generator producing the ids of candidate edges
 		 * @param query - an object with a list of properties to be matched
@@ -615,7 +615,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve directed edges extending from a given node
-		 * @function getEdgesFromGen
+		 * @function getDirectedEdgesFromGen
 		 * @memberof graph
 		 * @param node - the source node
 		 * @param query - an object with a list of properties to be matched
@@ -625,7 +625,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve directed edges reaching a given node, as a generator
-		 * @function getEdgesToGen
+		 * @function getDirectedEdgesToGen
 		 * @memberof graph
 		 * @param node - the target node
 		 * @param query - an object with a list of properties to be matched
@@ -635,7 +635,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve directed edges extending from a given node to another given node
-		 * @function getEdgesBetweenGen
+		 * @function getDirectedEdgesBetweenGen
 		 * @memberof graph
 		 * @param node - the source node
 		 * @param node - the target node
@@ -666,7 +666,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve undirected edges matching a query from a list of candidates
-		 * @function getEdges
+		 * @function getUndirectedEdges
 		 * @memberof graph
 		 * @param edgeIds - a list of candidate ids of edges
 		 * @param query - an object with a list of properties to be matched
@@ -676,7 +676,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve undirected edges extending from a given node
-		 * @function getEdgesFrom
+		 * @function getUndirectedEdgesFor
 		 * @memberof graph
 		 * @param node - the source node
 		 * @param query - an object with a list of properties to be matched
@@ -686,7 +686,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve undirected edges extending from a given node to another given node
-		 * @function getEdgesBetween
+		 * @function getUndirectedEdgesBetween
 		 * @memberof graph
 		 * @param node - the source node
 		 * @param node - the target node
@@ -697,7 +697,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve nodes reached by undirected edges that extend from a given node
-		 * @function getLinkedNodes
+		 * @function getConnectedNodes
 		 * @memberof graph
 		 * @param node - the target node
 		 * @param query - an object with a list of properties to be matched
@@ -707,7 +707,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		
 		/**
 		 * Retrieve undirected edges matching a query from a list of candidates, as a generator
-		 * @function getEdgesGen
+		 * @function getUndirectedEdgesGen
 		 * @memberof graph
 		 * @param edgeIdsGenerator - a generator producing the ids of candidate edges
 		 * @param query - an object with a list of properties to be matched
@@ -717,7 +717,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve undirected edges extending from a given node
-		 * @function getEdgesFromGen
+		 * @function getUndirectedEdgesForGen
 		 * @memberof graph
 		 * @param node - the source node
 		 * @param query - an object with a list of properties to be matched
@@ -727,7 +727,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve undirected edges extending from a given node to another given node
-		 * @function getEdgesBetweenGen
+		 * @function getUndirectedEdgesBetweenGen
 		 * @memberof graph
 		 * @param node - the source node
 		 * @param node - the target node
@@ -738,7 +738,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 		/**
 		 * Retrieve nodes reached by undirected edges that extend from a given node, as a generator
-		 * @function getLinkedNodesGen
+		 * @function getConnectedNodesGen
 		 * @memberof graph
 		 * @param node - the target node
 		 * @param query - an object with a list of properties to be matched
