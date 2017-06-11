@@ -1,4 +1,4 @@
-# cortez v0.1.14
+# cortez v0.1.15
 > Graph data structure
 
 
