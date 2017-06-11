@@ -32,9 +32,30 @@ const yieldMap = function*(generator, map) {
 	}
 };
 
+const drainAndLog = (gen) => {
+	while (true) {
+		const item = gen.next();
+		if (item.done) break;
+		console.log(item);
+	}
+};
+
+const drainAndCount = (gen) => {
+	let count = 0;
+	while (true) {
+		const item = gen.next();
+		if (item.done) break;
+		count++;
+	}
+
+	return count;
+};
+
 export {
 	yieldAll,
 	yieldMatching,
 	yieldUnion,
-	yieldMap
+	yieldMap,
+	drainAndLog,
+	drainAndCount
 };

@@ -436,13 +436,27 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 
 		var getEdgesFromGen = function getEdgesFromGen(directed) {
 			return regeneratorRuntime.mark(function _callee2(node, query) {
+				var edgesGen;
 				return regeneratorRuntime.wrap(function _callee2$(_context7) {
 					while (1) {
 						switch (_context7.prev = _context7.next) {
 							case 0:
-								return _context7.delegateYield(getEdgesGen(directed)(squashEdgesGen(node.outbound), query), "t0", 1);
+								if (directed) {
+									_context7.next = 5;
+									break;
+								}
 
-							case 1:
+								edgesGen = (0, _generatorUtils.yieldUnion)([squashEdgesGen(node.outbound), squashEdgesGen(node.inbound)]);
+								return _context7.delegateYield(getEdgesGen(directed)(edgesGen, query), "t0", 3);
+
+							case 3:
+								_context7.next = 6;
+								break;
+
+							case 5:
+								return _context7.delegateYield(getEdgesGen(directed)(squashEdgesGen(node.outbound), query), "t1", 6);
+
+							case 6:
 							case "end":
 								return _context7.stop();
 						}
@@ -757,26 +771,6 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
 			getEdgesBetween: getEdgesBetween(),
 
 			/**
-    * Retrieve nodes reached by edges that extend from a given node
-    * @function getLinkedNodes
-    * @memberof graph
-    * @param node - the target node
-    * @param query - an object with a list of properties to be matched
-    * @instance
-    */
-			getLinkedNodes: getLinkedNodes(),
-
-			/**
-    * Retrieve nodes having edges that reach a given node
-    * @function getLinkingNodes
-    * @memberof graph
-    * @param node - the target node
-    * @param query - an object with a list of properties to be matched
-    * @instance
-    */
-			getLinkingNodes: getLinkingNodes(),
-
-			/**
     * Retrieve edges matching a query from a list of candidates, as a generator
     * @function getEdgesGen
     * @memberof graph
@@ -816,26 +810,6 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @instance
     */
 			getEdgesBetweenGen: getEdgesBetweenGen(),
-
-			/**
-    * Retrieve nodes reached by edges that extend from a given node, as a generator
-    * @function getLinkedNodesGen
-    * @memberof graph
-    * @param node - the target node
-    * @param query - an object with a list of properties to be matched
-    * @instance
-    */
-			getLinkedNodesGen: getLinkedNodesGen(),
-
-			/**
-    * Retrieve nodes having edges that reach a given node
-    * @function getLinkingNodesGen
-    * @memberof graph
-    * @param node - the target node
-    * @param query - an object with a list of properties to be matched
-    * @instance
-    */
-			getLinkingNodesGen: getLinkingNodesGen(),
 
 			/**
     * Retrieve directed edges matching a query from a list of candidates
@@ -886,7 +860,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @param query - an object with a list of properties to be matched
     * @instance
     */
-			getDirectedLinkedNodes: getLinkedNodes(true),
+			getLinkedNodes: getLinkedNodes(true),
 
 			/**
     * Retrieve nodes having directed edges that reach a given node
@@ -896,7 +870,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @param query - an object with a list of properties to be matched
     * @instance
     */
-			getDirectedLinkingNodes: getLinkingNodes(true),
+			getLinkingNodes: getLinkingNodes(true),
 
 			/**
     * Retrieve directed edges matching a query from a list of candidates, as a generator
@@ -947,7 +921,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @param query - an object with a list of properties to be matched
     * @instance
     */
-			getDirectedLinkedNodesGen: getLinkedNodesGen(true),
+			getLinkedNodesGen: getLinkedNodesGen(true),
 
 			/**
     * Retrieve nodes having directed edges that reach a given node
@@ -957,7 +931,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @param query - an object with a list of properties to be matched
     * @instance
     */
-			getDirectedLinkingNodesGen: getLinkingNodesGen(true),
+			getLinkingNodesGen: getLinkingNodesGen(true),
 
 			/**
     * Retrieve undirected edges matching a query from a list of candidates
@@ -977,17 +951,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @param query - an object with a list of properties to be matched
     * @instance
     */
-			getUndirectedEdgesFrom: getEdgesFrom(false),
-
-			/**
-    * Retrieve undirected edges reaching a given node
-    * @function getEdgesTo
-    * @memberof graph
-    * @param node - the target node
-    * @param query - an object with a list of properties to be matched
-    * @instance
-    */
-			getUndirectedEdgesTo: getEdgesTo(false),
+			getUndirectedEdgesFor: getEdgesFrom(false),
 
 			/**
     * Retrieve undirected edges extending from a given node to another given node
@@ -1008,17 +972,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @param query - an object with a list of properties to be matched
     * @instance
     */
-			getUndirectedLinkedNodes: getLinkedNodes(false),
-
-			/**
-    * Retrieve nodes having undirected edges that reach a given node
-    * @function getLinkingNodes
-    * @memberof graph
-    * @param node - the target node
-    * @param query - an object with a list of properties to be matched
-    * @instance
-    */
-			getUndirectedLinkingNodes: getLinkingNodes(false),
+			getConnectedNodes: getLinkedNodes(false),
 
 			/**
     * Retrieve undirected edges matching a query from a list of candidates, as a generator
@@ -1038,17 +992,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @param query - an object with a list of properties to be matched
     * @instance
     */
-			getUndirectedEdgesFromGen: getEdgesFromGen(false),
-
-			/**
-    * Retrieve undirected edges reaching a given node, as a generator
-    * @function getEdgesToGen
-    * @memberof graph
-    * @param node - the target node
-    * @param query - an object with a list of properties to be matched
-    * @instance
-    */
-			getUndirectedEdgesToGen: getEdgesToGen(false),
+			getUndirectedEdgesForGen: getEdgesFromGen(false),
 
 			/**
     * Retrieve undirected edges extending from a given node to another given node
@@ -1069,17 +1013,7 @@ exports.default = function (getId, nodeFactory, edgeFactory) {
     * @param query - an object with a list of properties to be matched
     * @instance
     */
-			getUndirectedLinkedNodesGen: getLinkedNodesGen(false),
-
-			/**
-    * Retrieve nodes having undirected edges that reach a given node
-    * @function getLinkingNodesGen
-    * @memberof graph
-    * @param node - the target node
-    * @param query - an object with a list of properties to be matched
-    * @instance
-    */
-			getUndirectedLinkingNodesGen: getLinkingNodesGen(false)
+			getConnectedNodesGen: getLinkedNodesGen(false)
 		};
 	};
 };

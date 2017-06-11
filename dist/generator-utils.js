@@ -245,7 +245,28 @@ var yieldMap = regeneratorRuntime.mark(function yieldMap(generator, map) {
 	}, yieldMap, this);
 });
 
+var drainAndLog = function drainAndLog(gen) {
+	while (true) {
+		var item = gen.next();
+		if (item.done) break;
+		console.log(item);
+	}
+};
+
+var drainAndCount = function drainAndCount(gen) {
+	var count = 0;
+	while (true) {
+		var item = gen.next();
+		if (item.done) break;
+		count++;
+	}
+
+	return count;
+};
+
 exports.yieldAll = yieldAll;
 exports.yieldMatching = yieldMatching;
 exports.yieldUnion = yieldUnion;
 exports.yieldMap = yieldMap;
+exports.drainAndLog = drainAndLog;
+exports.drainAndCount = drainAndCount;

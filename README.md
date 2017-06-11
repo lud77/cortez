@@ -1,4 +1,4 @@
-# cortez v0.1.10
+# cortez v0.1.11
 > Graph data structure
 
 
@@ -39,7 +39,7 @@ Install the package and open docs/index.html in the browser to review the method
 ## Roadmap
 
 - Extend support for undirected graphs
-- Refine support for auto-loops
+- Refine support for auto-edges
 - Complete and expose fragment merging functionality
 - Add a suite of basic algorithms such as graph search and coverage
 - Provide better usage documentation and hints/best practices
