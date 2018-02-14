@@ -1,7 +1,7 @@
-import { assert } from 'chai';
+const { assert } = require('chai');
 
-import cz from '../dist/cortez';
-import { yieldAll, yieldMatching, yieldUnion, yieldMap, drainAndLog } from "../dist/generator-utils";
+const cz = require('../src/cortez');
+const { yieldAll, yieldMatching, yieldUnion, yieldMap, drainAndLog } = require('../src/generator-utils');
 
 describe('Traversal (undirected edges)', function() {
 	it('should return the selected edge from a node', () => {

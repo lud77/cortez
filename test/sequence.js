@@ -1,6 +1,6 @@
-import { assert } from 'chai';
+const { assert } = require('chai');
 
-import sequenceFactory from '../dist/sequence';
+const sequenceFactory = require('../src/sequence');
 
 describe('Sequence', function() {
 	it('should produce a ramp of numbers starting from 0', function() {

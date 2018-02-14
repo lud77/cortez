@@ -1,6 +1,6 @@
-import { assert } from 'chai';
+const { assert } = require('chai');
 
-import { yieldAll, yieldMatching, yieldUnion, yieldMap, drainAndCount } from "../dist/generator-utils";
+const { yieldAll, yieldMatching, yieldUnion, yieldMap, drainAndCount } = require('../src/generator-utils');
 
 describe('Generator Utils', function() {
     it('should yield all the elements of an array', () => {
@@ -31,4 +31,3 @@ describe('Generator Utils', function() {
 		assert.equal(8, gen.next().value);
 	});
 });
-

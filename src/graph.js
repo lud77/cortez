@@ -1,11 +1,11 @@
-import map from "lodash/map";
-import matches from "lodash/matches";
-import flatten from "lodash/flatten";
-import values from "lodash/values";
-import filter from "lodash/filter";
+const map = require('lodash/map');
+const matches = require('lodash/matches');
+const flatten = require('lodash/flatten');
+const values = require('lodash/values');
+const filter = require('lodash/filter');
 
-import sequenceFactory from "./sequence";
-import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "./generator-utils";
+const sequenceFactory = require('./sequence');
+const { yieldAll, yieldMatching, yieldUnion, yieldMap } = require('./generator-utils');
 
 /**
  * Create a graph
@@ -13,7 +13,7 @@ import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "./generator-utils
  * @param fragment - a Cortez object or a JSON-serialized Cortez instance
  * @param options - allowUndirected, onAddNode, onAddEdge, onRemoveNode, onRemoveEdge
  */
-export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => {
+module.exports = (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => {
 	let { nodes, edges, nodeCount, edgeCount } = Object.assign({}, {
 		nodeCount: 0,
 		edgeCount: 0,
@@ -163,7 +163,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 			nodes[edgeObj.from].hasUndirectedEdges[edgeObj.to]--;
 			nodes[edgeObj.to].hasUndirectedEdges[edgeObj.from]--;
 		}
-		
+
 		edgeCount--;
 		delete edges[id];
 	};
@@ -199,10 +199,10 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 
 	const link = (from, to, payload, metadata, directed) => addEdge(
 		edgeFactory(
-			getId(from), 
-			getId(to), 
-			payload, 
-			metadata, 
+			getId(from),
+			getId(to),
+			payload,
+			metadata,
 			directed || !options.allowUndirected
 		)
 	);
@@ -293,7 +293,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 	const getLinkingNodes = (directed) => (node, query) => map(getEdgesTo(directed)(node, query), (edge) => nodes[edge.from]);
 
 	const getLinkingNodesGen = (directed) => function*(node, query) {
-		yield* yieldMap(getEdgesToGen(directed)(node, query), (edge) => nodes[edge.from]);	
+		yield* yieldMap(getEdgesToGen(directed)(node, query), (edge) => nodes[edge.from]);
 	};
 
 	return {
@@ -331,7 +331,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @instance
 		 */
 		hasUndirectedEdge: options.allowUndirected ? hasUndirectedEdge : undefined,
-	
+
 		pack,
 		mergeWith,
 
@@ -432,7 +432,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @instance
 		 */
 		getNodes,
-		
+
 		/**
 		 * Retrieves a list of nodes as a generator
 		 * @function inflateNodesGen
@@ -592,7 +592,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @instance
 		 */
 		getLinkedNodes: getLinkedNodes(true),
-		
+
 		/**
 		 * Retrieve nodes having directed edges that reach a given node
 		 * @function getLinkingNodes
@@ -704,7 +704,7 @@ export default (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => 
 		 * @instance
 		 */
 		getConnectedNodes: getLinkedNodes(false),
-		
+
 		/**
 		 * Retrieve undirected edges matching a query from a list of candidates, as a generator
 		 * @function getUndirectedEdgesGen

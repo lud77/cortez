@@ -1,11 +1,11 @@
 const yieldAll = function*(items) {
 	if (items.length !== undefined) {
 		for (const item of items) {
-			yield item; 
+			yield item;
 		}
 	} else {
 		for (const i in items) {
-			yield items[i]; 
+			yield items[i];
 		}
 	}
 };
@@ -54,7 +54,7 @@ const drainAndCount = (gen) => {
 	return count;
 };
 
-export {
+module.exports = {
 	yieldAll,
 	yieldMatching,
 	yieldUnion,

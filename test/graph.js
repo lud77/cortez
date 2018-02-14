@@ -1,7 +1,7 @@
-import { assert } from 'chai';
+const { assert } = require('chai');
 
-import cz from '../dist/cortez';
-import { yieldAll, yieldMatching, yieldUnion, yieldMap } from "../dist/generator-utils";
+const cz = require('../src/cortez');
+const { yieldAll, yieldMatching, yieldUnion, yieldMap } = require('../src/generator-utils');
 
 describe('Graph', function() {
     it('should retrieve the id property of an object', () => {
@@ -56,7 +56,7 @@ describe('Graph', function() {
 		assert.equal(true, dgraph.hasAnyEdge(node1, node2));
 		assert.equal(true, dgraph.hasDirectedEdge(node1, node2));
 	});
-	
+
 	it('should not detect a direct edge between two nodes in the wrong direction', () => {
 		const dgraph = cz.graph();
 		const node1 = dgraph.addNode(cz.node());

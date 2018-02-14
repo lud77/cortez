@@ -29,4 +29,4 @@ const factory = (from) => {
 	};
 };
 
-export default factory;
+module.exports = factory;
