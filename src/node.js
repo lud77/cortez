@@ -5,7 +5,6 @@
  * @param metadata - an object ot be stored in the node
  */
 module.exports = (payload, metadata) => ({
-	type: "node",
 	payload,
 	metadata,
 	numOutbound: 0,

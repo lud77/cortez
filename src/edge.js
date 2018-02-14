@@ -5,7 +5,6 @@
  * @param metadata - an object ot be stored in the edge
  */
 module.exports = (getId) => (from, to, payload, metadata, directed = true) => ({
-	type: "edge",
 	directed,
 	payload,
 	metadata,
