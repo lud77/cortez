@@ -33,9 +33,6 @@ Plain and generator-based versions of all query and graph traversal methods.
 Install the package and open docs/index.html in the browser to review the methods documentation. You can also look at the test suite for real usage examples.
 
 
-
-
-
 ## Roadmap
 
 - Refine support for self-edges
@@ -43,7 +40,6 @@ Install the package and open docs/index.html in the browser to review the method
 - Add a suite of basic algorithms such as graph search and coverage
 - Provide better usage documentation and hints/best practices
 - Provide benchmarks
-
 
 
 
