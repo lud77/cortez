@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const map = require('lodash/map');
 const matches = require('lodash/matches');
 const flatten = require('lodash/flatten');
@@ -13,13 +14,15 @@ const { yieldAll, yieldMatching, yieldUnion, yieldMap } = require('./generator-u
  * @param fragment - a Cortez object or a JSON-serialized Cortez instance
  * @param options - allowUndirected, onAddNode, onAddEdge, onRemoveNode, onRemoveEdge
  */
-module.exports = (getId, nodeFactory, edgeFactory) => (fragment, options = {}) => {
+module.exports = (fragment, options = {}) => {
 	let { nodes, edges, nodeCount, edgeCount } = Object.assign({}, {
 		nodeCount: 0,
 		edgeCount: 0,
 		nodes: {},
 		edges: {}
 	}, (typeof fragment === "string") ? JSON.parse(fragment) : fragment);
+
+	const getId = (element) => get(element, 'id', element);
 
 	const nodeSeq = sequenceFactory(nodeCount);
 	const edgeSeq = sequenceFactory(edgeCount);
@@ -296,11 +299,32 @@ module.exports = (getId, nodeFactory, edgeFactory) => (fragment, options = {}) =
 		yield* yieldMap(getEdgesToGen(directed)(node, query), (edge) => nodes[edge.from]);
 	};
 
+	const nodeFactory = (payload, metadata) => ({
+		payload,
+		metadata,
+		numOutbound: 0,
+		numInbound: 0,
+		outbound: {},
+		inbound: {},
+		hasUndirectedEdges: {}
+	});
+
+	const edgeFactory = (from, to, payload, metadata, directed = true) => ({
+		directed,
+		payload,
+		metadata,
+		from: getId(from),
+		to: getId(to)
+	});
+
 	return {
 		nodes,
 		edges,
 		nodeCount,
 		edgeCount,
+		getId,
+		node: nodeFactory,
+		edge: edgeFactory,
 
 		/**
 		 * Checks if a pair of nodes has at least one edge connecting them
