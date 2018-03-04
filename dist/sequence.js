@@ -1,8 +1,5 @@
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
 /**
  * Returns a sequence object
  * @namespace sequence
@@ -38,4 +35,4 @@ var factory = function factory(from) {
 	};
 };
 
-exports.default = factory;
+module.exports = factory;

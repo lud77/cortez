@@ -1,9 +1,6 @@
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-var yieldAll = regeneratorRuntime.mark(function yieldAll(items) {
+var yieldAll = /*#__PURE__*/regeneratorRuntime.mark(function yieldAll(items) {
 	var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, item, i;
 
 	return regeneratorRuntime.wrap(function yieldAll$(_context) {
@@ -99,7 +96,7 @@ var yieldAll = regeneratorRuntime.mark(function yieldAll(items) {
 	}, yieldAll, this, [[4, 15, 19, 27], [20,, 22, 26]]);
 });
 
-var yieldMatching = regeneratorRuntime.mark(function yieldMatching(generator, isMatch) {
+var yieldMatching = /*#__PURE__*/regeneratorRuntime.mark(function yieldMatching(generator, isMatch) {
 	var item;
 	return regeneratorRuntime.wrap(function yieldMatching$(_context2) {
 		while (1) {
@@ -140,7 +137,7 @@ var yieldMatching = regeneratorRuntime.mark(function yieldMatching(generator, is
 	}, yieldMatching, this);
 });
 
-var yieldUnion = regeneratorRuntime.mark(function yieldUnion(generators) {
+var yieldUnion = /*#__PURE__*/regeneratorRuntime.mark(function yieldUnion(generators) {
 	var _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, generator;
 
 	return regeneratorRuntime.wrap(function yieldUnion$(_context3) {
@@ -209,7 +206,7 @@ var yieldUnion = regeneratorRuntime.mark(function yieldUnion(generators) {
 	}, yieldUnion, this, [[3, 13, 17, 25], [18,, 20, 24]]);
 });
 
-var yieldMap = regeneratorRuntime.mark(function yieldMap(generator, map) {
+var yieldMap = /*#__PURE__*/regeneratorRuntime.mark(function yieldMap(generator, map) {
 	var item;
 	return regeneratorRuntime.wrap(function yieldMap$(_context4) {
 		while (1) {
@@ -267,9 +264,11 @@ var drainAndCount = function drainAndCount(gen) {
 	return count;
 };
 
-exports.yieldAll = yieldAll;
-exports.yieldMatching = yieldMatching;
-exports.yieldUnion = yieldUnion;
-exports.yieldMap = yieldMap;
-exports.drainAndLog = drainAndLog;
-exports.drainAndCount = drainAndCount;
+module.exports = {
+	yieldAll: yieldAll,
+	yieldMatching: yieldMatching,
+	yieldUnion: yieldUnion,
+	yieldMap: yieldMap,
+	drainAndLog: drainAndLog,
+	drainAndCount: drainAndCount
+};
