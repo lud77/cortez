@@ -3,7 +3,7 @@ const { assert } = require('chai');
 const cortez = require('../src/graph');
 const { yieldAll, yieldMatching, yieldUnion, yieldMap } = require('../src/generator-utils');
 
-describe('Graph', function() {
+describe('Graph', () => {
     it('should retrieve the id property of an object', () => {
         const cz = cortez();
         const id = 3;

@@ -2,7 +2,7 @@ const { assert } = require('chai');
 
 const { yieldAll, yieldMatching, yieldUnion, yieldMap, drainAndCount } = require('../src/generator-utils');
 
-describe('Generator Utils', function() {
+describe('Generator Utils', () => {
     it('should yield all the elements of an array', () => {
     		const gen = yieldAll([1, 2, 3]);
     		const numItems = drainAndCount(gen);

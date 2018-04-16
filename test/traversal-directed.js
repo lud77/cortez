@@ -3,7 +3,7 @@ const { assert } = require('chai');
 const cortez = require('../src/graph');
 const { yieldAll, yieldMatching, yieldUnion, yieldMap } = require('../src/generator-utils');
 
-describe('Traversal (directed edges)', function() {
+describe('Traversal (directed edges)', () => {
 		it('should return the selected edge from a node', () => {
 				const cz = cortez();
 				const node1 = cz.addNode(cz.node());

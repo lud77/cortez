@@ -2,7 +2,7 @@ const { assert } = require('chai');
 
 const sequenceFactory = require('../src/sequence');
 
-describe('Sequence', function() {
+describe('Sequence', () => {
 		it('should produce a ramp of numbers starting from 0', function() {
 				const seq = sequenceFactory();
 				assert.equal(0, seq.getNext());
