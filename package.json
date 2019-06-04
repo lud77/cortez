@@ -23,20 +23,20 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "babel-cli": "6.24.1",
+    "babel-cli": "6.26.0",
+    "babel-core": "6.26.3",
+    "babel-preset-env": "1.7.0",
     "chai": "3.5.0",
-    "eslint": "3.8.0",
-    "handlebars": "4.0.6",
+    "eslint": "5.16.0",
+    "handlebars": "4.1.2",
     "hbsrender": "1.0.9",
     "istanbul": "0.4.5",
     "jsdoc": "3.4.3",
-    "mocha": "3.0.2",
-    "babel-core": "6.26.0",
-    "babel-preset-env": "1.6.1",
+    "mocha": "6.1.4",
     "shx": "0.1.4"
   },
   "dependencies": {
     "babel-polyfill": "6.23.0",
-    "lodash": "4.17.4"
+    "lodash": "4.17.11"
   }
 }
