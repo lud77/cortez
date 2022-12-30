@@ -32,7 +32,7 @@
     "hbsrender": "1.0.9",
     "istanbul": "0.4.5",
     "jsdoc": "3.4.3",
-    "mocha": "6.1.4",
+    "mocha": "10.2.0",
     "shx": "0.1.4"
   },
   "dependencies": {
